@@ -110,7 +110,11 @@
       "Read(//tmp/**)",
       "Bash(.venv/Scripts/python.exe experimentos/anomalia.py)",
       "Bash(.venv/Scripts/python.exe experimentos/bancada_sintetica.py)",
-      "Bash(git -c core.autocrlf=false -c core.safecrlf=false commit -q -m 'Etapa 3: pipelines, bancada de ruídos e scripts de experimento *)"
+      "Bash(git -c core.autocrlf=false -c core.safecrlf=false commit -q -m 'Etapa 3: pipelines, bancada de ruídos e scripts de experimento *)",
+      "Bash(.venv/Scripts/python.exe experimentos/tabelas_resultados.py)",
+      "Bash(sed -n '/T9/,$p')",
+      "Bash(sed -n '/## T9/,$p' artigo-ICIT/RESULTADOS_tabelas.md)",
+      "Bash(rtk du *)"
     ]
   }
 }
