@@ -1,6 +1,6 @@
 # Tabelas da auditoria (geradas por `scripts/consolidar.py`)
 
-Gerado em 23/10/2026 10:11. Não editar à mão. Acurácia balanceada (bacc) das predições concatenadas de todas as dobras; `acaso` = 1/(classes no teste).
+Gerado em 23/10/2026 11:09. Não editar à mão. Acurácia balanceada (bacc) das predições concatenadas de todas as dobras; `acaso` = 1/(classes no teste).
 
 ## 1. Inventário (de `out/indices/<id>.csv`)
 
@@ -8,6 +8,7 @@ Gerado em 23/10/2026 10:11. Não editar à mão. Acurácia balanceada (bacc) das
 |---|---|---|---|---|---|---|---|---|---|---|
 | imvacd | 256 | 96 | 8 | 8 | 0.72 | 44100, 48000 | 1 | 0 | 256 | 0 |
 | kaist | 5 | 5 | 5 | 3 | 0.08 | 51200 | 1 | 0 | 0 | 0 |
+| mafaulda | 1951 | 1951 | 11 | 10 | 2.65 | 51200 | 3 | 4 | 0 | 1951 |
 | mimii | 18173 | 18173 | 14 | 2 | 50.48 | 16000 | 2 | 14 | 0 | 0 |
 | toycar | 7200 | 7200 | 15 | 2 | 20.00 | 16000 | 2 | 9 | 0 | 0 |
 | uoemd | 128 | 128 | 8 | 8 | 0.36 | 42000 | 1 | 0 | 64 | 0 |
@@ -20,6 +21,7 @@ A última coluna treina e testa dentro de cada unidade que tem ≥2 classes (spl
 |---|---|---|---|---|---|---|
 | imvacd | 0.152 | 0.117 | 0.000 | 0.125 | — | `out/experiments/exp1_nivel_imvacd_20261023-084715.csv` |
 | kaist | 0.500 | — | 0.167 | 0.333 | — | `out/experiments/exp1_nivel_kaist_20261022-235513.csv` |
+| mafaulda | 0.432 | 0.430 | 0.052 | 0.100 | 0.888 [0.671–0.962] (n=4) | `out/experiments/exp1_nivel_mafaulda_20261023-110036.csv` |
 | mimii | 0.520 | 0.518 | 0.506 | 0.500 | 0.772 [0.572–0.856] (n=8) | `out/experiments/exp1_nivel_mimii_20261023-101118.csv` |
 | toycar | 0.639 | 0.642 | 0.636 | 0.500 | 0.511 [0.444–0.591] (n=6) | `out/experiments/exp1_nivel_toycar_20261023-101124.csv` |
 | uoemd | 0.221 | 0.180 | 0.000 | 0.125 | — | `out/experiments/exp1_nivel_uoemd_20261022-235654.csv` |
@@ -47,6 +49,10 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 | kaist | forma | segmento | 0.319 | 0.343 | 0.343 | 0.333 |
 | kaist | nivel | gravacao | 0.591 | — | 0.167 | 0.333 |
 | kaist | nivel | segmento | 0.303 | 0.349 | 0.349 | 0.333 |
+| mafaulda | forma | gravacao | 0.166 | 0.101 | 0.097 | 0.100 |
+| mafaulda | forma | segmento | 0.099 | 0.097 | 0.100 | 0.100 |
+| mafaulda | nivel | gravacao | 0.109 | 0.099 | 0.096 | 0.100 |
+| mafaulda | nivel | segmento | 0.101 | 0.101 | 0.102 | 0.100 |
 | mimii | forma | gravacao | 0.514 | 0.498 | 0.501 | 0.500 |
 | mimii | forma | segmento | 0.502 | 0.500 | 0.500 | 0.500 |
 | mimii | nivel | gravacao | 0.502 | 0.496 | 0.499 | 0.500 |
@@ -66,11 +72,14 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 |---|---|---|---|---|
 | imvacd | — | — | 1.42 (n=28) | `out/experiments/exp3_espectros_imvacd_20261023-084738.csv` |
 | kaist | — | 6.16 (n=2) | 7.34 (n=8) | `out/experiments/exp3_espectros_kaist_20261022-235517.csv` |
+| mafaulda | 0.55 (n=6) | 0.71 (n=21) | 0.65 (n=93) | `out/experiments/exp3_espectros_mafaulda_20261023-104729.csv` |
 | mimii | 1.54 (n=8) | 3.15 (n=56) | 2.94 (n=56) | `out/experiments/exp3_espectros_mimii_20261023-100951.csv` |
 | toycar | 1.06 (n=6) | 2.39 (n=81) | 2.59 (n=66) | `out/experiments/exp3_espectros_toycar_20261023-091523.csv` |
 | uoemd | — | — | 1.29 (n=28) | `out/experiments/exp3_espectros_uoemd_20261022-235709.csv` |
 
-## 5. Exp4 — rastreador (regra pré-registrada: 0,40–1,05 × f_alim)
+## 5. Exp4 — rastreador (regras pré-registradas)
+
+UOEMD e IM-VACD: faixa 0,40–1,05 × f_alim, referência = rotação síncrona f_alim (2 polos), logo o erro inclui o escorregamento. MaFaulDa: faixa única da base (0,9 × mín a 1,1 × máx da rotação medida), referência = tacômetro.
 
 `mod. oitava` é diagnóstico a posteriori: conta como acerto também f_ref/2 e 2·f_ref.
 
@@ -81,6 +90,9 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 | imvacd | 20 | 32 | 0.023 | 0.438 | 0.438 | 1.024 | 0.500 |  |
 | imvacd | 25 | 32 | 0.012 | 0.812 | 0.812 | 1.012 | 0.812 |  |
 | imvacd | 30 | 96 | 0.012 | 0.771 | 0.771 | 1.012 | 0.938 |  |
+| mafaulda | todas | 1951 | 0.000 | 0.967 | 0.966 | — | 0.982 | `out/experiments/exp4_rastreador_mafaulda_20261023-110820.csv` |
+| mafaulda | sem canal defeituoso | 1785 | 0.000 | 0.999 | 0.998 | — | 0.999 |  |
+| mafaulda | só canal defeituoso | 166 | 0.002 | 0.627 | 0.620 | — | 0.801 |  |
 | uoemd | todas | 64 | 0.251 | 0.469 | 0.469 | 1.471 | 0.938 | `out/experiments/exp4_rastreador_uoemd_20261022-235745.csv` |
 | uoemd | 15 | 16 | 0.022 | 0.438 | 0.438 | 1.023 | 0.812 |  |
 | uoemd | 30 | 16 | 0.504 | 0.000 | 0.000 | 2.018 | 0.938 |  |
@@ -99,6 +111,10 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 | kaist | classe=rolamento_interno | forma+nivel | 1.000 | — | 0.500 | `out/experiments/exp5_unidade_kaist_20261022-235519.csv` |
 | kaist | todas | forma | 1.000 | — | 0.200 | `out/experiments/exp5_unidade_kaist_20261022-235519.csv` |
 | kaist | todas | forma+nivel | 1.000 | — | 0.200 | `out/experiments/exp5_unidade_kaist_20261022-235519.csv` |
+| mafaulda | classe=desbalanceamento | forma | 0.623 | 0.393 | 0.143 | `out/experiments/exp5_unidade_mafaulda_20261023-110152.csv` |
+| mafaulda | classe=desbalanceamento | forma+nivel | 0.688 | 0.451 | 0.143 | `out/experiments/exp5_unidade_mafaulda_20261023-110152.csv` |
+| mafaulda | todas | forma | 0.562 | 0.396 | 0.091 | `out/experiments/exp5_unidade_mafaulda_20261023-110152.csv` |
+| mafaulda | todas | forma+nivel | 0.658 | 0.488 | 0.091 | `out/experiments/exp5_unidade_mafaulda_20261023-110152.csv` |
 | mimii | classe=abnormal | forma | 0.986 | 0.981 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
 | mimii | classe=abnormal | forma+nivel | 0.987 | 0.983 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
 | mimii | classe=normal | forma | 1.000 | 1.000 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
@@ -136,6 +152,21 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 | normal            |                                      0 |                                      0 |                                      0 |                                      0 |                                  1 |
 | rolamento_externo |                                      0 |                                      0 |                                      1 |                                      1 |                                  0 |
 | rolamento_interno |                                      1 |                                      1 |                                      0 |                                      0 |                                  0 |
+
+### mafaulda
+
+| classe                            |   bancada_mafaulda |   bancada_mafaulda+massa_10g |   bancada_mafaulda+massa_15g |   bancada_mafaulda+massa_20g |   bancada_mafaulda+massa_25g |   bancada_mafaulda+massa_30g |   bancada_mafaulda+massa_35g |   bancada_mafaulda+massa_6g |   rolamento_defeituoso_esfera |   rolamento_defeituoso_gaiola |   rolamento_defeituoso_pista_externa |
+|:----------------------------------|-------------------:|-----------------------------:|-----------------------------:|-----------------------------:|-----------------------------:|-----------------------------:|-----------------------------:|----------------------------:|------------------------------:|------------------------------:|-------------------------------------:|
+| desalinhamento_horizontal         |                197 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                             0 |                             0 |                                    0 |
+| desalinhamento_vertical           |                301 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                             0 |                             0 |                                    0 |
+| desbalanceamento                  |                  0 |                           48 |                           48 |                           49 |                           47 |                           47 |                           45 |                          49 |                             0 |                             0 |                                    0 |
+| normal                            |                 49 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                             0 |                             0 |                                    0 |
+| rolamento_overhang_esfera         |                  0 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                           137 |                             0 |                                    0 |
+| rolamento_overhang_gaiola         |                  0 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                             0 |                           188 |                                    0 |
+| rolamento_overhang_pista_externa  |                  0 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                             0 |                             0 |                                  188 |
+| rolamento_underhang_esfera        |                  0 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                           186 |                             0 |                                    0 |
+| rolamento_underhang_gaiola        |                  0 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                             0 |                           188 |                                    0 |
+| rolamento_underhang_pista_externa |                  0 |                            0 |                            0 |                            0 |                            0 |                            0 |                            0 |                           0 |                             0 |                             0 |                                  184 |
 
 ### mimii
 
