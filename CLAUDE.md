@@ -33,5 +33,5 @@ out/figuras/
 analise/                 METODOLOGIA, RESULTADOS, COMPARATIVO_BASES, RECOMENDACAO
 ```
 
-Ambiente: `.venv` (Python 3.14, uv). Português nos comentários e na documentação; textos de
+Ambiente: `.venv` (Python 3.12, uv). Português nos comentários e na documentação; textos de
 `analise/` em parágrafos.
