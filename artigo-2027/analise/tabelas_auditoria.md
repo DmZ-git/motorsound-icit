@@ -1,6 +1,6 @@
 # Tabelas da auditoria (geradas por `scripts/consolidar.py`)
 
-Gerado em 23/10/2026 09:49. Não editar à mão. Acurácia balanceada (bacc) das predições concatenadas de todas as dobras; `acaso` = 1/(classes no teste).
+Gerado em 23/10/2026 10:11. Não editar à mão. Acurácia balanceada (bacc) das predições concatenadas de todas as dobras; `acaso` = 1/(classes no teste).
 
 ## 1. Inventário (de `out/indices/<id>.csv`)
 
@@ -8,17 +8,21 @@ Gerado em 23/10/2026 09:49. Não editar à mão. Acurácia balanceada (bacc) das
 |---|---|---|---|---|---|---|---|---|---|---|
 | imvacd | 256 | 96 | 8 | 8 | 0.72 | 44100, 48000 | 1 | 0 | 256 | 0 |
 | kaist | 5 | 5 | 5 | 3 | 0.08 | 51200 | 1 | 0 | 0 | 0 |
+| mimii | 18173 | 18173 | 14 | 2 | 50.48 | 16000 | 2 | 14 | 0 | 0 |
 | toycar | 7200 | 7200 | 15 | 2 | 20.00 | 16000 | 2 | 9 | 0 | 0 |
 | uoemd | 128 | 128 | 8 | 8 | 0.36 | 42000 | 1 | 0 | 64 | 0 |
 
 ## 2. Exp1 — controle de nível (RMS + pico → classe), tarefa `todas`
 
-| base | aleatório | por gravação | por unidade (motor fora) | acaso | CSV |
-|---|---|---|---|---|---|
-| imvacd | 0.152 | 0.117 | 0.000 | 0.125 | `out/experiments/exp1_nivel_imvacd_20261023-084715.csv` |
-| kaist | 0.500 | — | 0.167 | 0.333 | `out/experiments/exp1_nivel_kaist_20261022-235513.csv` |
-| toycar | 0.639 | 0.642 | 0.636 | 0.500 | `out/experiments/exp1_nivel_toycar_20261023-091411.csv` |
-| uoemd | 0.221 | 0.180 | 0.000 | 0.125 | `out/experiments/exp1_nivel_uoemd_20261022-235654.csv` |
+A última coluna treina e testa dentro de cada unidade que tem ≥2 classes (split por gravação) e dá mediana [mín–máx] entre unidades.
+
+| base | aleatório | por gravação | por unidade (motor fora) | acaso | dentro da unidade | CSV |
+|---|---|---|---|---|---|---|
+| imvacd | 0.152 | 0.117 | 0.000 | 0.125 | — | `out/experiments/exp1_nivel_imvacd_20261023-084715.csv` |
+| kaist | 0.500 | — | 0.167 | 0.333 | — | `out/experiments/exp1_nivel_kaist_20261022-235513.csv` |
+| mimii | 0.520 | 0.518 | 0.506 | 0.500 | 0.772 [0.572–0.856] (n=8) | `out/experiments/exp1_nivel_mimii_20261023-101118.csv` |
+| toycar | 0.639 | 0.642 | 0.636 | 0.500 | 0.511 [0.444–0.591] (n=6) | `out/experiments/exp1_nivel_toycar_20261023-101124.csv` |
+| uoemd | 0.221 | 0.180 | 0.000 | 0.125 | — | `out/experiments/exp1_nivel_uoemd_20261022-235654.csv` |
 
 Referência IDMT e A2212 (protocolo do Artigo3, não reanalisadas; `out/experiments/ref_artigo3_idmt_a2212_20261023-094832.csv`): acurácia balanceada com RMS normalizado.
 
@@ -43,6 +47,10 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 | kaist | forma | segmento | 0.319 | 0.343 | 0.343 | 0.333 |
 | kaist | nivel | gravacao | 0.591 | — | 0.167 | 0.333 |
 | kaist | nivel | segmento | 0.303 | 0.349 | 0.349 | 0.333 |
+| mimii | forma | gravacao | 0.514 | 0.498 | 0.501 | 0.500 |
+| mimii | forma | segmento | 0.502 | 0.500 | 0.500 | 0.500 |
+| mimii | nivel | gravacao | 0.502 | 0.496 | 0.499 | 0.500 |
+| mimii | nivel | segmento | 0.500 | 0.498 | 0.499 | 0.500 |
 | toycar | forma | gravacao | 0.530 | 0.505 | 0.504 | 0.500 |
 | toycar | forma | segmento | 0.500 | 0.500 | 0.497 | 0.500 |
 | toycar | nivel | gravacao | 0.504 | 0.495 | 0.494 | 0.500 |
@@ -58,6 +66,7 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 |---|---|---|---|---|
 | imvacd | — | — | 1.42 (n=28) | `out/experiments/exp3_espectros_imvacd_20261023-084738.csv` |
 | kaist | — | 6.16 (n=2) | 7.34 (n=8) | `out/experiments/exp3_espectros_kaist_20261022-235517.csv` |
+| mimii | 1.54 (n=8) | 3.15 (n=56) | 2.94 (n=56) | `out/experiments/exp3_espectros_mimii_20261023-100951.csv` |
 | toycar | 1.06 (n=6) | 2.39 (n=81) | 2.59 (n=66) | `out/experiments/exp3_espectros_toycar_20261023-091523.csv` |
 | uoemd | — | — | 1.29 (n=28) | `out/experiments/exp3_espectros_uoemd_20261022-235709.csv` |
 
@@ -90,6 +99,12 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 | kaist | classe=rolamento_interno | forma+nivel | 1.000 | — | 0.500 | `out/experiments/exp5_unidade_kaist_20261022-235519.csv` |
 | kaist | todas | forma | 1.000 | — | 0.200 | `out/experiments/exp5_unidade_kaist_20261022-235519.csv` |
 | kaist | todas | forma+nivel | 1.000 | — | 0.200 | `out/experiments/exp5_unidade_kaist_20261022-235519.csv` |
+| mimii | classe=abnormal | forma | 0.986 | 0.981 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
+| mimii | classe=abnormal | forma+nivel | 0.987 | 0.983 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
+| mimii | classe=normal | forma | 1.000 | 1.000 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
+| mimii | classe=normal | forma+nivel | 1.000 | 1.000 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
+| mimii | todas | forma | 0.996 | 0.996 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
+| mimii | todas | forma+nivel | 0.997 | 0.996 | 0.125 | `out/experiments/exp5_unidade_mimii_20261023-101009.csv` |
 | toycar | classe=anomalia | forma | 0.801 | 0.752 | 0.167 | `out/experiments/exp5_unidade_toycar_20261023-091657.csv` |
 | toycar | classe=anomalia | forma+nivel | 0.796 | 0.753 | 0.167 | `out/experiments/exp5_unidade_toycar_20261023-091657.csv` |
 | toycar | classe=normal | forma | 0.886 | 0.859 | 0.083 | `out/experiments/exp5_unidade_toycar_20261023-091657.csv` |
@@ -121,6 +136,13 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 | normal            |                                      0 |                                      0 |                                      0 |                                      0 |                                  1 |
 | rolamento_externo |                                      0 |                                      0 |                                      1 |                                      1 |                                  0 |
 | rolamento_interno |                                      1 |                                      1 |                                      0 |                                      0 |                                  0 |
+
+### mimii
+
+| classe   |   fan_id_00 |   fan_id_02 |   fan_id_04 |   fan_id_06 |   fan_sec_00 |   fan_sec_01 |   fan_sec_02 |   fan_sec_03 |   fan_sec_04 |   fan_sec_05 |   pump_id_00 |   pump_id_02 |   pump_id_04 |   pump_id_06 |
+|:---------|------------:|------------:|------------:|------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|
+| abnormal |         407 |         359 |         348 |         361 |          200 |          200 |          200 |          200 |          200 |          200 |          143 |          111 |          100 |          102 |
+| normal   |        1011 |        1016 |        1033 |        1015 |         1203 |         1203 |         1203 |         1203 |         1203 |         1203 |         1006 |         1005 |          702 |         1036 |
 
 ### toycar
 
