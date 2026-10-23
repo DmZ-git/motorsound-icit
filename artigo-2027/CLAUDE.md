@@ -6,8 +6,13 @@ encontrados no IDMT (classe = motor) e no A2212 (rolamento = motor 4).
 
 ## Regras
 
-- `../Artigo3(MotorSound)` é **somente leitura**. Código reaproveitado é copiado para
-  `scripts/lib/` com cabeçalho de procedência; nada é importado por caminho relativo.
+- Esta pasta (`artigo-2027/`) vive dentro do repositório `Artigo3(MotorSound)` desde
+  23/10/2026 (antes era um repositório próprio em `Decifrae-Artigo/Artigo(2027)`; o histórico
+  foi importado com `git subtree`). **Fora desta pasta, o Artigo3 é somente leitura**: o
+  trabalho do ICIT (`../motorsound/`, `../artigo-ICIT/`, `../docs/` etc.) não é editado
+  daqui. Código reaproveitado é copiado para `scripts/lib/` com cabeçalho de procedência;
+  nada é importado de `../motorsound/`.
+- Scripts rodam com o `.venv` **desta pasta** (`artigo-2027/.venv`), não o do Artigo3.
 - A unidade independente é a gravação ou o motor, nunca o segmento.
 - `data/` nunca entra no git. Áudio, zips e `.mat` também não.
 - Um CSV por experimento em `out/experiments/`, com `_meta.json`, nunca sobrescrito.
@@ -19,7 +24,7 @@ encontrados no IDMT (classe = motor) e no A2212 (rolamento = motor 4).
 ## Pare e pergunte
 
 Antes de download acima de 20 GB, de base que exija login, de licença restritiva, ou se for
-preciso tocar em `../Artigo3(MotorSound)`.
+preciso tocar em qualquer arquivo do Artigo3 fora de `artigo-2027/`.
 
 ## Estrutura
 

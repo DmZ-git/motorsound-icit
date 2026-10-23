@@ -46,7 +46,8 @@ Artigo3(MotorSound)/
 ├── experimentos/            scripts que geram CSVs
 ├── out/experiments/         CSVs, nunca sobrescritos
 ├── out/figuras/
-└── artigo-ICIT/             METODOLOGIA.md, RESULTADOS.md, IDEIAS.md, DECISAO.md
+├── artigo-ICIT/             METODOLOGIA.md, RESULTADOS.md, IDEIAS.md, DECISAO.md
+└── artigo-2027/             auditoria das bases para o artigo completo de 2027 (tem CLAUDE.md próprio)
 ```
 
 ## Código reaproveitado dos outros artigos
