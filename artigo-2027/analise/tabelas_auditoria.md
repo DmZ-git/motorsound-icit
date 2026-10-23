@@ -1,6 +1,6 @@
 # Tabelas da auditoria (geradas por `scripts/consolidar.py`)
 
-Gerado em 23/10/2026 11:09. Não editar à mão. Acurácia balanceada (bacc) das predições concatenadas de todas as dobras; `acaso` = 1/(classes no teste).
+Gerado em 23/10/2026 11:10. Não editar à mão. Acurácia balanceada (bacc) das predições concatenadas de todas as dobras; `acaso` = 1/(classes no teste).
 
 ## 1. Inventário (de `out/indices/<id>.csv`)
 
@@ -70,12 +70,12 @@ Permutação por segmento tem de dar o acaso em todo split. Permutação por gra
 
 | base | classe diferente, mesma unidade | unidade diferente, mesma classe | ambas diferentes | CSV |
 |---|---|---|---|---|
-| imvacd | — | — | 1.42 (n=28) | `out/experiments/exp3_espectros_imvacd_20261023-084738.csv` |
-| kaist | — | 6.16 (n=2) | 7.34 (n=8) | `out/experiments/exp3_espectros_kaist_20261022-235517.csv` |
-| mafaulda | 0.55 (n=6) | 0.71 (n=21) | 0.65 (n=93) | `out/experiments/exp3_espectros_mafaulda_20261023-104729.csv` |
-| mimii | 1.54 (n=8) | 3.15 (n=56) | 2.94 (n=56) | `out/experiments/exp3_espectros_mimii_20261023-100951.csv` |
-| toycar | 1.06 (n=6) | 2.39 (n=81) | 2.59 (n=66) | `out/experiments/exp3_espectros_toycar_20261023-091523.csv` |
-| uoemd | — | — | 1.29 (n=28) | `out/experiments/exp3_espectros_uoemd_20261022-235709.csv` |
+| imvacd | — | — | 1.42 (n=28) | `out/experiments/exp3_espectros_imvacd_20261023-111027.csv` |
+| kaist | — | 6.16 (n=2) | 7.34 (n=8) | `out/experiments/exp3_espectros_kaist_20261023-111019.csv` |
+| mafaulda | 0.55 (n=6) | 0.71 (n=21) | 0.65 (n=93) | `out/experiments/exp3_espectros_mafaulda_20261023-111031.csv` |
+| mimii | 1.54 (n=8) | 3.15 (n=56) | 2.94 (n=56) | `out/experiments/exp3_espectros_mimii_20261023-111036.csv` |
+| toycar | 1.06 (n=6) | 2.39 (n=81) | 2.59 (n=66) | `out/experiments/exp3_espectros_toycar_20261023-111039.csv` |
+| uoemd | — | — | 1.29 (n=28) | `out/experiments/exp3_espectros_uoemd_20261023-111022.csv` |
 
 ## 5. Exp4 — rastreador (regras pré-registradas)
 
