@@ -42,7 +42,22 @@ colaborador foram **copiados** (idênticos ao commit, conferido com `diff --stri
 para `embarcados/src/c/colaborador_original/`. A mudança de lugar do `artigo-2027/` não foi
 tocada nem commitada.
 
+## B4 · Sem distribuição TeX (24/10/2026, 9h30)
+
+`pdflatex`, `latexmk`, `xelatex`, `tectonic`, `bibtex` não estão no PATH; não existem
+`C:\Program Files\MiKTeX` nem `C:\texlive`. O LaTeX IEEEtran de `paper/` é escrito mas não
+compilado aqui; a contagem de páginas (6 pp regular / 4 pp WiP) não pode ser verificada sem
+compilar. Saídas: compilar no Overleaf, ou autorizar a instalação de uma distribuição TeX
+(download fora de bases e pacotes Python).
+
 ## Não é bloqueio, mas registro
+
+ICE esporádico do GCC (24/10, ~10h): o primeiro build `esp32s3 ref` depois de adicionar a
+ESP-DSP 1.5.2 caiu com "internal compiler error: Segmentation fault" em
+`managed_components/espressif__esp-dsp/modules/conv/float/dspi_conv_f32_ansi.c:184`; o mesmo
+arquivo compilou nos outros três builds e a repetição do `esp32s3 ref` saiu "FW OK". Tratado
+como falha transitória do compilador (xtensa-esp-elf 14.2.0_20260121); se reaparecer, investigar.
+
 
 Compilador no PC: não há gcc/clang no PATH, mas o Visual Studio 2022 Build Tools está
 instalado (MSVC 14.44.35207, CMake 3.31.6-msvc6, Windows SDK 10.0.26100.0) e compila.
