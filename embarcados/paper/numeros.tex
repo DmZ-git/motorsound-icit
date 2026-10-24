@@ -1,5 +1,5 @@
 % Gerado por embarcados/src/python/gerar_artigo_numeros.py. NÃO EDITAR À MÃO.
-% commit 9df3b2c280b69b02703d2c61d277e2bdf02cafad (árvore suja em embarcados/: True)
+% commit 8c97c004e43bbe76a61d67f40b0cf358aedaa9e5 (árvore suja em embarcados/: True)
 % Uma macro por número. Comentário: [categoria] fonte :: coluna.
 % Prefixos: VPar código | VData/VDiag/VRot dados e validação | VEq equivalência (PC)
 %           VEst 1·estimativa analítica | VPc 2·medição no PC | VBuild 3·build do firmware | VChip 4·medição no ESP32
@@ -359,6 +359,31 @@
 \newcommand{\VBuildEspsDramName}{DIRAM}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: nome da região de dados interna
 \newcommand{\VBuildEspsWsRatio}{5.5}% [estimativa] C:/Espressif/build_p11_esp32s3/size.txt :: estimativa ws float 3 s / DIRAM total
 \newcommand{\VBuildEspsWsRatioOne}{2.8}% [estimativa] C:/Espressif/build_p11_esp32s3/size.txt :: estimativa ws float 1 s / DIRAM total
+\newcommand{\VEqFloatBadCases}{2}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: ids com status != PASS (casos)
+\newcommand{\VEqFloatBadAreEdge}{1}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: todos os ids != PASS são borda (1=sim)
+\newcommand{\VEqRealCases}{150}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: nº de casos limpos+ruidosos
+\newcommand{\VEqFloatRealAllPass}{150}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: casos limpos+ruidosos com PASS em todas as etapas (float)
+\newcommand{\VEqDoubleStagesPassStrict}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem FAIL e sem PASS_EMPATE (double)
+\newcommand{\VEqFloatStagesPassStrict}{23}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem FAIL e sem PASS_EMPATE (float)
+\newcommand{\VEqSosdStagesPassStrict}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem FAIL e sem PASS_EMPATE (float-sosd)
+\newcommand{\VEqFloatStrictFailStages}{env\_mod, features, z}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas com FAIL ou PASS_EMPATE (float)
+\newcommand{\VEqFloatStrictFailN}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: casos afetados por etapa (máx de fail+pass_empate)
+\newcommand{\VEqDcRefPeakRatio}{4.0}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv + embarcados/gold/casos/borda_dc_ruido3s_ma2212/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_ma2212/welch_P.f32 + embarcados/gold/casos/borda_dc_ruido3s_midmt/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_midmt/welch_P.f32 :: P_ref[bin da ref]/P_ref[bin do C], mínimo nos casos DC (critério do auditor)
+\newcommand{\VEqDcCOverRef}{185}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv + embarcados/gold/casos/borda_dc_ruido3s_ma2212/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_ma2212/welch_P.f32 + embarcados/gold/casos/borda_dc_ruido3s_midmt/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_midmt/welch_P.f32 :: P_C[bin do C]/P_ref[bin do C], mínimo nos casos DC
+\newcommand{\VDiagBalRmsNormBldcFileHP}{0.843}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: acurácia balanceada (Healthy, Propeller) do split arquivo, só M1-M3
+\newcommand{\VDiagDropHPRmsNormBldc}{0.029}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Bal[arquivo, H/P, M1-M3] - Bal[motor sem M4]
+\newcommand{\VDiagBalRmsRawBldcFileHP}{0.913}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: acurácia balanceada (Healthy, Propeller) do split arquivo, só M1-M3
+\newcommand{\VDiagDropHPRmsRawBldc}{0.159}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Bal[arquivo, H/P, M1-M3] - Bal[motor sem M4]
+\newcommand{\VDiagBalClsBldcFileHP}{0.972}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: acurácia balanceada (Healthy, Propeller) do split arquivo, só M1-M3
+\newcommand{\VDiagDropHPClsBldc}{0.052}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Bal[arquivo, H/P, M1-M3] - Bal[motor sem M4]
+\newcommand{\VDiagBalDecBldcFileHP}{0.753}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: acurácia balanceada (Healthy, Propeller) do split arquivo, só M1-M3
+\newcommand{\VDiagDropHPDecBldc}{0.068}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Bal[arquivo, H/P, M1-M3] - Bal[motor sem M4]
+\newcommand{\VRotOctRatioMin}{2.00}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: min f0/mediana entre as janelas acima do limiar
+\newcommand{\VRotOctRatioMax}{2.02}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: max f0/mediana entre as janelas acima do limiar
+\newcommand{\VEstWsFloatThreeKib}{1820}% [estimativa] embarcados/paper/fontes/ws_float_48000.json :: total_com_tabela/1024
+\newcommand{\VEstWsFloatOneKib}{936}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: total_com_tabela/1024
+\newcommand{\VBuildEspsIramPct}{100}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: IRAM Used [%] (S3)
+\newcommand{\VBuildEspsDramFreeKib}{280}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: DIRAM Remain/1024
 \newcommand{\VChipModel}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: chip_modelo
 \newcommand{\VChipCpuMhz}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: cpu_mhz
 \newcommand{\VChipPsramMb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: psram_mb

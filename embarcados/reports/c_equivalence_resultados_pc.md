@@ -49,3 +49,7 @@ Gerado por `tests/equivalence/resumo_equivalencia.py` a partir dos CSVs abaixo; 
 - **C float32 (PC)**, `borda_dc_ruido3s_ma2212` (borda, modelo a2212_arq0), etapa `features`: PASS_EMPATE; erro máx 37.11, razão 6.089e+06× tol. features[9]:f_mod
 - **C float32 (PC)**, `borda_dc_ruido3s_ma2212` (borda, modelo a2212_arq0), etapa `features[9]:f_mod`: PASS_EMPATE; erro máx 37.11, razão 6.089e+06× tol. argmax de welch_P: C bin 90, ref bin 52; P_ref[ref]-P_ref[C] = 9.414e-16 (2·tol = 6.335e-11)
 - **C float32 (PC)**, `borda_dc_ruido3s_ma2212` (borda, modelo a2212_arq0), etapa `z`: FAIL; erro máx 1.265, razão 1.573e+06× tol. 
+
+## Nota da auditoria independente (F)
+
+Os vereditos acima aplicam a regra congelada em `447a7c2`, que aceita como PASS_EMPATE um argmax do Welch diferente quando P_ref[bin da referência] − P_ref[bin do C] ≤ 2·tol absoluta. A auditoria (`reports/independent_scientific_audit.md`, M1) mostrou que nos casos de borda DC+ruído essa diferença absoluta é pequena só porque o espectro inteiro está no piso do float32: em termos relativos o pico da referência é várias vezes o bin escolhido pelo C, então não é empate real. As tolerâncias e o comparador não foram alterados depois disso; o artigo conta esses casos, de forma conservadora, como FAIL em `env_mod`, `features` e `z` (a razão exata é recalculada por `src/python/gerar_artigo_numeros.py`). A decisão de classe não muda em nenhum caso.

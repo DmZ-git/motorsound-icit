@@ -1,7 +1,7 @@
 # Metodologia (artigo ICIT 2027, `embarcados/`)
 
 > Gerado por `embarcados/src/python/gerar_artigo_textos.py` a partir de `paper/numeros.json`
-> (commit 9df3b2c). Não editar à mão. Os valores entre parênteses vêm das macros de
+> (commit 8c97c00). Não editar à mão. Os valores entre parênteses vêm das macros de
 > `paper/numeros.tex`, que trazem arquivo e coluna de origem. O histórico da fase exploratória
 > está em `artigo-ICIT/METODOLOGIA.md`, `RESULTADOS.md` e `DECISAO.md` (somente leitura).
 
@@ -50,8 +50,11 @@ arena fornecida pelo chamador, cujo tamanho sai da mesma função de layout que 
 ponteiros. O tipo real é escolhido na compilação (float32 para o microcontrolador, double para a
 verificação), e as decisões que mudam inteiros (grade, medianas, arredondamento das posições
 harmônicas) são feitas em double nos dois builds, reproduzindo o arredondamento meio-para-par e o
-desempate pelo primeiro índice da referência. A única aproximação usada é a variante nomeada
-`p11_c_sosd`, que mantém em double o estado do filtro do envelope dentro do build float32.
+desempate pelo primeiro índice da referência. Toda mudança de aritmética é uma variante nomeada.
+A avaliada aqui, `p11_c_sosd`, mantém em double o estado do filtro do envelope dentro do build
+float32, como o scipy faz; ela é mais precisa, não uma aproximação. Existe no firmware a opção
+`p11_c_espdsp` (FFTs de potência de dois pela ESP-DSP), que nunca foi comparada com a referência e
+não é usada.
 
 ## Bases, protocolos e métricas
 
@@ -85,24 +88,31 @@ perturbações: ruído branco em três SNRs e os distúrbios sintéticos de afun
 com ruído mínimo). As etapas do HMM foram conferidas em 20 sequências de probabilidade,
 6 penalidades e 2 durações mínimas (240 configurações). As
 tolerâncias de cada etapa vêm de uma análise de arredondamento de primeira ordem e de uma emulação
-numérica independente de cada build; foram commitadas no commit `447a7c2` (2026-10-24 09:10,
-sha256 `d74dae800ceb…`) antes da comparação formal (2026-10-24 09:11), e o hash vai em cada linha do
+numérica independente de cada build; foram congeladas antes da comparação formal, no commit
+`447a7c2` (2026-10-24 09:10, sha256 `d74dae800ceb…`; comparação em 2026-10-24 09:11), e o hash vai em cada linha do
 resultado. As duas emulações passaram em todas as linhas (6 852 e 6 852
 de 6 852) antes de o C ser comparado. Etapas contínuas são comparadas pelo erro
 máximo relativo à escala da etapa; saídas discretas (caminho de rotação, decisão, estados do HMM)
 têm de coincidir exatamente, salvo empate demonstrado com os valores da própria referência. Uma
-falha numa etapa marca as seguintes como "a jusante". Uma ressalva de cronologia: o porte em C foi
-depurado contra os vetores de ouro pelo agente C antes do congelamento (commit do porte anterior
-ao das tolerâncias); o "pré-registro" vale para a comparação formal do agente D.
+falha numa etapa marca as seguintes como "a jusante". Cronologia: o porte em C foi depurado contra
+os mesmos vetores de ouro pelo seu desenvolvedor antes do congelamento (commit do porte anterior ao
+das tolerâncias). Por isso falamos em tolerâncias "congeladas antes da comparação formal", não em
+pré-registro. A auditoria independente (`reports/independent_scientific_audit.md`) conferiu também
+janelas fora do ouro, que passaram com as tolerâncias congeladas; o número dessas janelas não está
+em CSV do repositório e não é citado. As tolerâncias dos casos de borda foram calibradas no erro da
+emulação nos mesmos sinais, evidência mais fraca, e algumas são largas no float32 (proeminência de
+modulação e grupos de ordens). A grade de 2 cents e a faixa de 15 a
+60 Hz do rastreador foram escolhidas olhando o `train/` do IDMT.
 
 ## Categorias de custo
 
 Separamos quatro categorias, também nos nomes das macros. A estimativa analítica (`VEst…`) é o
 tamanho da arena devolvido pela função de layout do C (`p11_host ws <n>`). A medição no PC
-(`VPc…`) cronometra 200 janelas por base depois de 5 de aquecimento, em ciclo sobre
-75 janelas distintas, dentro do executável e em torno das chamadas do núcleo
-(MSVC 19,44 x64 \slash{}O2 \slash{}fp:precise, Windows 11, 16 CPUs lógicas); a referência Python é cronometrada nas mesmas
-janelas. O build do firmware (`VBuild…`) é o `idf.py size` para ESP32 e ESP32-S3 (ESP-IDF
+(`VPc…`) faz 200 medições por base depois de 5 de aquecimento, em ciclo sobre
+75 janelas distintas (MSVC 19,44 x64 \slash{}O2 \slash{}fp:precise, Windows 11, 16 CPUs lógicas). O executável C
+roda num processo novo por janela (o aquecimento não aquece o C) e o tempo é tomado dentro dele, em
+torno das chamadas do núcleo, sem a inicialização do workspace; a referência Python é cronometrada
+nas mesmas janelas e não tem como excluir a própria inicialização. O build do firmware (`VBuild…`) é o `idf.py size` para ESP32 e ESP32-S3 (ESP-IDF
 v5,5.6, GCC 14,2.0), só estático. A medição no ESP32 (`VChip…`) manda as janelas pela
 serial e mede com o temporizador do chip só em torno do processamento, junto com as marcas de heap
 e de pilha. Só essa última categoria pode ser chamada de "medido no ESP32", e ela ainda está
