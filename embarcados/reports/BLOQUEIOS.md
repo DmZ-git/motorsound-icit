@@ -18,6 +18,14 @@ scripts de medição ficam prontos e testados só no build.
 Instalando ESP-IDF v5.5.6 (última tag estável 5.x em `git ls-remote`) em
 `C:\Espressif\esp-idf-v5.5.6`, fora do repositório.
 
+**Resolvido 24/10, ~00h:** `install.bat esp32,esp32s3` baixou as ferramentas, mas falhou ao
+criar o ambiente Python ("This script was called from a virtual environment") porque o
+`python` do PATH era o `.venv` do projeto. Refeito com
+`idf_tools.py install-python-env` usando o CPython 3.12.13 do uv (fora de venv). O ambiente
+é carregado por `firmware/idf_env.bat`. Validação: `examples/get-started/hello_world`
+copiado para `C:\Espressif\hello_test`, `idf.py set-target esp32s3 && idf.py build && idf.py size`
+→ "ESP-IDF v5.5.6", "Project build complete", exit 0.
+
 
 `idf.py`, `esptool.py` e `xtensa-esp32*-gcc` não estão no PATH; não existem `C:\Espressif`,
 `~/esp` nem `~/.espressif`. Instalar o IDF é um download de toolchain que não é base nem
