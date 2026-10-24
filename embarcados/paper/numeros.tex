@@ -1,0 +1,388 @@
+% Gerado por embarcados/src/python/gerar_artigo_numeros.py. NÃO EDITAR À MÃO.
+% commit 9df3b2c280b69b02703d2c61d277e2bdf02cafad (árvore suja em embarcados/: True)
+% Uma macro por número. Comentário: [categoria] fonte :: coluna.
+% Prefixos: VPar código | VData/VDiag/VRot dados e validação | VEq equivalência (PC)
+%           VEst 1·estimativa analítica | VPc 2·medição no PC | VBuild 3·build do firmware | VChip 4·medição no ESP32
+\newif\ifchipmedido
+\chipmedidofalse  % true só se results/manifests/bancada.json e esp32_lat_* existirem
+
+\newcommand{\VParSr}{16{,}000}% [codigo] pipelines/_decifrae.py :: PreDecifrae.sr
+\newcommand{\VParSrKhz}{16}% [codigo] pipelines/_decifrae.py :: PreDecifrae.sr/1000
+\newcommand{\VParNfft}{8{,}192}% [codigo] pipelines/_decifrae.py :: PreDecifrae.n_fft
+\newcommand{\VParHop}{1{,}024}% [codigo] pipelines/_decifrae.py :: PreDecifrae.hop
+\newcommand{\VParFmin}{15}% [codigo] pipelines/_decifrae.py :: PreDecifrae.fmin
+\newcommand{\VParFmax}{60}% [codigo] pipelines/_decifrae.py :: PreDecifrae.fmax
+\newcommand{\VParStepCents}{2}% [codigo] pipelines/_decifrae.py :: PreDecifrae.passo_cents
+\newcommand{\VParJ}{1{,}201}% [codigo] motorsound/rotacao.py :: len(rotacao.grade(fmin,fmax,passo))
+\newcommand{\VParNbins}{4{,}097}% [codigo] motorsound/rotacao.py :: n_fft//2+1 (rfft)
+\newcommand{\VParDf}{1.95}% [codigo] motorsound/rotacao.py :: sr/n_fft
+\newcommand{\VParNharm}{48}% [codigo] pipelines/_decifrae.py :: N_HARM
+\newcommand{\VParGroupOneLo}{1}% [codigo] pipelines/_decifrae.py :: GRUPOS[0][0]
+\newcommand{\VParGroupOneHi}{4}% [codigo] pipelines/_decifrae.py :: GRUPOS[0][1]
+\newcommand{\VParGroupTwoLo}{5}% [codigo] pipelines/_decifrae.py :: GRUPOS[1][0]
+\newcommand{\VParGroupTwoHi}{12}% [codigo] pipelines/_decifrae.py :: GRUPOS[1][1]
+\newcommand{\VParGroupThreeLo}{13}% [codigo] pipelines/_decifrae.py :: GRUPOS[2][0]
+\newcommand{\VParGroupThreeHi}{24}% [codigo] pipelines/_decifrae.py :: GRUPOS[2][1]
+\newcommand{\VParGroupFourLo}{25}% [codigo] pipelines/_decifrae.py :: GRUPOS[3][0]
+\newcommand{\VParGroupFourHi}{48}% [codigo] pipelines/_decifrae.py :: GRUPOS[3][1]
+\newcommand{\VParMaxJump}{50}% [codigo] pipelines/_decifrae.py :: PreDecifrae.max_salto
+\newcommand{\VParMaxJumpCents}{100}% [codigo] pipelines/_decifrae.py :: max_salto*passo_cents
+\newcommand{\VParOctStates}{600}% [codigo] motorsound/rotacao.py :: viterbi_rotacao: k_oct = round(1200/passo)
+\newcommand{\VParWStep}{0.55}% [codigo] motorsound/rotacao.py :: VIT_W_STEP
+\newcommand{\VParWOct}{7.0}% [codigo] motorsound/rotacao.py :: VIT_W_OCTAVE
+\newcommand{\VParWSil}{3.2}% [codigo] motorsound/rotacao.py :: VIT_W_SIL
+\newcommand{\VParWEnergy}{0.45}% [codigo] motorsound/rotacao.py :: emissao_baixo: peso de e_norm
+\newcommand{\VParEmisEps}{\ensuremath{10^{-3}}}% [codigo] motorsound/rotacao.py :: emissao_baixo: eps do -log
+\newcommand{\VParTempCos}{0.1}% [codigo] pipelines/_decifrae.py :: PostDecifrae.temp_cos
+\newcommand{\VParButterOrder}{4}% [codigo] pipelines/_decifrae.py :: _envelope_mod: butter(ordem, fc)
+\newcommand{\VParButterFc}{200}% [codigo] pipelines/_decifrae.py :: _envelope_mod: butter(ordem, fc)
+\newcommand{\VParModLo}{2}% [codigo] pipelines/_decifrae.py :: _envelope_mod: banda
+\newcommand{\VParModHi}{100}% [codigo] pipelines/_decifrae.py :: _envelope_mod: banda
+\newcommand{\VParEnvRateHz}{1{,}000}% [codigo] pipelines/_decifrae.py :: _envelope_mod: [:: sr//1000]
+\newcommand{\VParDecim}{16}% [codigo] pipelines/_decifrae.py :: sr // 1000
+\newcommand{\VParBandLo}{10}% [codigo] pipelines/_decifrae.py :: extrair: banda das features
+\newcommand{\VParBandHi}{4{,}000}% [codigo] pipelines/_decifrae.py :: extrair: banda das features
+\newcommand{\VParSegIdmt}{3}% [codigo] motorsound/config.py :: AVAL_IDMT.seg_s
+\newcommand{\VParSegBldc}{1}% [codigo] motorsound/config.py :: AVAL_A2212.seg_s
+\newcommand{\VParRmsTarget}{0.1}% [codigo] motorsound/config.py :: AvaliacaoConfig.rms_alvo
+\newcommand{\VParFramesIdmt}{39}% [codigo] motorsound/rotacao.py :: 1+(N-n_fft)//hop (stft_mag)
+\newcommand{\VParFramesBldc}{8}% [codigo] motorsound/rotacao.py :: 1+(N-n_fft)//hop (stft_mag)
+\newcommand{\VParNClassicFeat}{32}% [codigo] pipelines/_classicas.py :: N_FEATURES
+\newcommand{\VParNChangePen}{6}% [codigo] embarcados/gold/seqs/idmt_seq00/params.json :: change_penalties
+\newcommand{\VParCpMin}{0.5}% [codigo] embarcados/gold/seqs/idmt_seq00/params.json :: change_penalties
+\newcommand{\VParCpMax}{16}% [codigo] embarcados/gold/seqs/idmt_seq00/params.json :: change_penalties
+\newcommand{\VParNLogprob}{-50}% [codigo] embarcados/gold/seqs/idmt_seq00/params.json :: n_logprob
+\newcommand{\VParHmmTemp}{1}% [codigo] embarcados/gold/seqs/idmt_seq00/params.json :: temp
+\newcommand{\VDataIdmtWindows}{357}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: len(unique(rec_id,idx)) da p11
+\newcommand{\VDataIdmtRecordings}{3}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(rec_id)
+\newcommand{\VDataIdmtMotors}{3}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(motor)
+\newcommand{\VDataIdmtClasses}{3}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(classe)
+\newcommand{\VDataBldcWindows}{430}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: len(unique(rec_id,idx)) da p11
+\newcommand{\VDataBldcRecordings}{43}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(rec_id)
+\newcommand{\VDataBldcMotors}{4}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(motor)
+\newcommand{\VDataBldcClasses}{3}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(classe)
+\newcommand{\VDataBldcFilesHealthy}{22}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(rec_id) por classe
+\newcommand{\VDataBldcFilesPropeller}{14}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(rec_id) por classe
+\newcommand{\VDataBldcFilesBearing}{7}% [dados] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nunique(rec_id) por classe
+\newcommand{\VDataIdmtRandGroups}{18}% [dados] embarcados/results/csv/diagnostico_20261023_222831.csv :: n_grupos
+\newcommand{\VDataIdmtBlkGroups}{15}% [dados] embarcados/results/csv/diagnostico_20261023_222831.csv :: n_grupos
+\newcommand{\VDataBldcRandGroups}{43}% [dados] embarcados/results/csv/diagnostico_20261023_222831.csv :: n_grupos
+\newcommand{\VDataBldcFileGroups}{43}% [dados] embarcados/results/csv/diagnostico_20261023_222831.csv :: n_grupos
+\newcommand{\VDataBldcMotorGroups}{43}% [dados] embarcados/results/csv/diagnostico_20261023_222831.csv :: n_grupos
+\newcommand{\VDataBldcNoMfourGroups}{36}% [dados] embarcados/results/csv/diagnostico_20261023_222831.csv :: n_grupos
+\newcommand{\VDataNBoot}{2{,}000}% [dados] embarcados/results/csv/diagnostico_20261023_222831_meta.json :: n_boot
+\newcommand{\VDataCiLevel}{95}% [dados] embarcados/results/csv/diagnostico_20261023_222831.csv :: nível do IC no nome da coluna ic<nível>_lo
+\newcommand{\VDataSeedBoot}{20261023}% [dados] embarcados/results/csv/diagnostico_20261023_222831_meta.json :: seed_boot
+\newcommand{\VDiagBalRmsNormIdmtRand}{0.992}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormIdmtRandLo}{0.983}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_norm,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormIdmtRandHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_norm,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsNormIdmtRand}{0.998}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,idmt,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsNormIdmtRand}{0.992}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,idmt,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalRmsRawIdmtRand}{0.997}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawIdmtRandLo}{0.990}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_bruto,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawIdmtRandHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_bruto,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsRawIdmtRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,idmt,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsRawIdmtRand}{0.997}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,idmt,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalClsIdmtRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsIdmtRandLo}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p04_classicas,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsIdmtRandHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p04_classicas,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucClsIdmtRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,idmt,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneClsIdmtRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,idmt,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalDecIdmtRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecIdmtRandLo}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p11_decifrae_harmsum,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecIdmtRandHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p11_decifrae_harmsum,idmt,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucDecIdmtRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,idmt,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneDecIdmtRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,idmt,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalRmsNormIdmtBlk}{0.991}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormIdmtBlkLo}{0.982}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_norm,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormIdmtBlkHi}{0.997}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_norm,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsNormIdmtBlk}{0.998}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,idmt,blocos,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsNormIdmtBlk}{0.991}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,idmt,blocos,f1_macro,_macro]
+\newcommand{\VDiagBalRmsRawIdmtBlk}{0.993}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawIdmtBlkLo}{0.987}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_bruto,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawIdmtBlkHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_bruto,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsRawIdmtBlk}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,idmt,blocos,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsRawIdmtBlk}{0.994}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,idmt,blocos,f1_macro,_macro]
+\newcommand{\VDiagBalClsIdmtBlk}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsIdmtBlkLo}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p04_classicas,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsIdmtBlkHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p04_classicas,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucClsIdmtBlk}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,idmt,blocos,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneClsIdmtBlk}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,idmt,blocos,f1_macro,_macro]
+\newcommand{\VDiagBalDecIdmtBlk}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecIdmtBlkLo}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p11_decifrae_harmsum,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecIdmtBlkHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p11_decifrae_harmsum,idmt,blocos,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucDecIdmtBlk}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,idmt,blocos,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneDecIdmtBlk}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,idmt,blocos,f1_macro,_macro]
+\newcommand{\VDiagBalRmsNormBldcRand}{0.564}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcRandLo}{0.515}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_norm,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcRandHi}{0.607}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_norm,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsNormBldcRand}{0.784}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsNormBldcRand}{0.533}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalRmsRawBldcRand}{0.625}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcRandLo}{0.571}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_bruto,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcRandHi}{0.660}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_bruto,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsRawBldcRand}{0.786}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsRawBldcRand}{0.588}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalClsBldcRand}{0.998}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcRandLo}{0.995}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p04_classicas,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcRandHi}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p04_classicas,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucClsBldcRand}{1.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneClsBldcRand}{0.998}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalDecBldcRand}{0.849}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcRandLo}{0.790}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p11_decifrae_harmsum,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcRandHi}{0.905}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p11_decifrae_harmsum,a2212,aleatorio,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucDecBldcRand}{0.955}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,aleatorio,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneDecBldcRand}{0.789}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,aleatorio,f1_macro,_macro]
+\newcommand{\VDiagBalRmsNormBldcFile}{0.562}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcFileLo}{0.512}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_norm,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcFileHi}{0.606}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_norm,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsNormBldcFile}{0.759}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,arquivo,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsNormBldcFile}{0.532}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,arquivo,f1_macro,_macro]
+\newcommand{\VDiagBalRmsRawBldcFile}{0.608}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcFileLo}{0.544}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_bruto,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcFileHi}{0.656}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_bruto,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsRawBldcFile}{0.706}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,arquivo,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsRawBldcFile}{0.576}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,arquivo,f1_macro,_macro]
+\newcommand{\VDiagBalClsBldcFile}{0.981}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcFileLo}{0.950}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p04_classicas,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcFileHi}{0.998}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p04_classicas,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucClsBldcFile}{0.996}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,arquivo,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneClsBldcFile}{0.982}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,arquivo,f1_macro,_macro]
+\newcommand{\VDiagBalDecBldcFile}{0.816}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcFileLo}{0.747}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p11_decifrae_harmsum,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcFileHi}{0.881}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p11_decifrae_harmsum,a2212,arquivo,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucDecBldcFile}{0.935}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,arquivo,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneDecBldcFile}{0.753}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,arquivo,f1_macro,_macro]
+\newcommand{\VDiagBalRmsNormBldcMotor}{0.542}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcMotorLo}{0.485}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_norm,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcMotorHi}{0.596}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_norm,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsNormBldcMotor}{0.489}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,motor,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsNormBldcMotor}{0.509}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,motor,f1_macro,_macro]
+\newcommand{\VDiagBalRmsRawBldcMotor}{0.503}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcMotorLo}{0.412}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_bruto,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcMotorHi}{0.580}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_bruto,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsRawBldcMotor}{0.508}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,motor,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsRawBldcMotor}{0.509}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,motor,f1_macro,_macro]
+\newcommand{\VDiagBalClsBldcMotor}{0.613}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcMotorLo}{0.579}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p04_classicas,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcMotorHi}{0.641}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p04_classicas,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucClsBldcMotor}{0.618}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,motor,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneClsBldcMotor}{0.563}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,motor,f1_macro,_macro]
+\newcommand{\VDiagBalDecBldcMotor}{0.456}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcMotorLo}{0.397}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p11_decifrae_harmsum,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcMotorHi}{0.519}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p11_decifrae_harmsum,a2212,motor,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucDecBldcMotor}{0.484}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,motor,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneDecBldcMotor}{0.418}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,motor,f1_macro,_macro]
+\newcommand{\VDiagBalRmsNormBldcNoMfour}{0.814}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcNoMfourLo}{0.720}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_norm,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsNormBldcNoMfourHi}{0.887}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_norm,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsNormBldcNoMfour}{0.871}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,motor_sem_M4,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsNormBldcNoMfour}{0.824}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_norm,a2212,motor_sem_M4,f1_macro,_macro]
+\newcommand{\VDiagBalRmsRawBldcNoMfour}{0.754}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcNoMfourLo}{0.623}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[b00_rmspico_bruto,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalRmsRawBldcNoMfourHi}{0.873}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[b00_rmspico_bruto,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucRmsRawBldcNoMfour}{0.912}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,motor_sem_M4,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneRmsRawBldcNoMfour}{0.823}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[b00_rmspico_bruto,a2212,motor_sem_M4,f1_macro,_macro]
+\newcommand{\VDiagBalClsBldcNoMfour}{0.920}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcNoMfourLo}{0.868}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p04_classicas,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalClsBldcNoMfourHi}{0.962}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p04_classicas,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucClsBldcNoMfour}{0.984}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,motor_sem_M4,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneClsBldcNoMfour}{0.923}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p04_classicas,a2212,motor_sem_M4,f1_macro,_macro]
+\newcommand{\VDiagBalDecBldcNoMfour}{0.685}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcNoMfourLo}{0.593}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_lo[p11_decifrae_harmsum,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagBalDecBldcNoMfourHi}{0.774}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: ic95_hi[p11_decifrae_harmsum,a2212,motor_sem_M4,acuracia_balanceada,_macro]
+\newcommand{\VDiagAucDecBldcNoMfour}{0.822}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,motor_sem_M4,roc_auc_ovr_macro,_macro]
+\newcommand{\VDiagFoneDecBldcNoMfour}{0.685}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11_decifrae_harmsum,a2212,motor_sem_M4,f1_macro,_macro]
+\newcommand{\VDiagRecDecBldcFileHealthy}{0.577}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11,a2212,arquivo,sensibilidade,Healthy]
+\newcommand{\VDiagRecDecBldcFilePropeller}{0.929}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11,a2212,arquivo,sensibilidade,Propeller]
+\newcommand{\VDiagRecDecBldcFileBearing}{0.943}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11,a2212,arquivo,sensibilidade,Bearing]
+\newcommand{\VDiagRecDecBldcMotorHealthy}{0.441}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11,a2212,motor,sensibilidade,Healthy]
+\newcommand{\VDiagRecDecBldcMotorPropeller}{0.929}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11,a2212,motor,sensibilidade,Propeller]
+\newcommand{\VDiagRecDecBldcMotorBearing}{0.000}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: valor[p11,a2212,motor,sensibilidade,Bearing]
+\newcommand{\VDiagInflRmsNormBldc}{0.002}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[aleatorio]-Bal[arquivo] (a2212)
+\newcommand{\VDiagDropRmsNormBldc}{0.019}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[arquivo]-Bal[motor] (a2212)
+\newcommand{\VDiagInflRmsRawBldc}{0.016}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[aleatorio]-Bal[arquivo] (a2212)
+\newcommand{\VDiagDropRmsRawBldc}{0.106}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[arquivo]-Bal[motor] (a2212)
+\newcommand{\VDiagInflClsBldc}{0.017}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[aleatorio]-Bal[arquivo] (a2212)
+\newcommand{\VDiagDropClsBldc}{0.368}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[arquivo]-Bal[motor] (a2212)
+\newcommand{\VDiagInflDecBldc}{0.033}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[aleatorio]-Bal[arquivo] (a2212)
+\newcommand{\VDiagDropDecBldc}{0.360}% [diagnostico] embarcados/results/csv/diagnostico_20261023_222831.csv :: Bal[arquivo]-Bal[motor] (a2212)
+\newcommand{\VParNFeat}{13}% [codigo] embarcados/results/csv/p11_features_20261023_222831.csv :: nº de colunas f0..f12
+\newcommand{\VRotIdmtGoodMed}{25.76}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: mediana de f0 (idmt, good)
+\newcommand{\VRotIdmtGoodIqr}{0.18}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: IQR de f0 (idmt, good)
+\newcommand{\VRotIdmtBrokenMed}{27.99}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: mediana de f0 (idmt, broken)
+\newcommand{\VRotIdmtBrokenIqr}{0.03}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: IQR de f0 (idmt, broken)
+\newcommand{\VRotIdmtHeavyMed}{24.65}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: mediana de f0 (idmt, heavyload)
+\newcommand{\VRotIdmtHeavyIqr}{0.20}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: IQR de f0 (idmt, heavyload)
+\newcommand{\VRotOctThr}{1.5}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: limiar: f0 > LIM_OIT·mediana da classe
+\newcommand{\VRotCeilPctThr}{1}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: limiar: f0 >= LIM_TETO·fmax
+\newcommand{\VRotIdmtGoodOctPct}{8.6}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: % janelas good com f0 > LIM_OIT·mediana da classe (salto de oitava)
+\newcommand{\VRotBldcCeilPct}{3.7}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv :: % janelas A2212 com f0 >= 0,99·fmax
+\newcommand{\VRotBldcSpearman}{0.02}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Spearman(velocidade nominal do arquivo, mediana de f0 do arquivo), 43 arquivos
+\newcommand{\VRotBldcSpearmanMOne}{0.30}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Spearman por motor M1 (14 arquivos)
+\newcommand{\VRotBldcFilesMOne}{14}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nº de arquivos do M1
+\newcommand{\VRotBldcSpearmanMTwo}{0.30}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Spearman por motor M2 (16 arquivos)
+\newcommand{\VRotBldcFilesMTwo}{16}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nº de arquivos do M2
+\newcommand{\VRotBldcSpearmanMThree}{0.54}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Spearman por motor M3 (6 arquivos)
+\newcommand{\VRotBldcFilesMThree}{6}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nº de arquivos do M3
+\newcommand{\VRotBldcSpearmanMFour}{1.00}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Spearman por motor M4 (7 arquivos)
+\newcommand{\VRotBldcFilesMFour}{7}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nº de arquivos do M4
+\newcommand{\VEqStagesTotal}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas por build
+\newcommand{\VEqStagesCase}{20}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas de janela
+\newcommand{\VEqStagesSeq}{6}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas de sequência
+\newcommand{\VEqCases}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: n[y_prep]
+\newcommand{\VEqSeqCombos}{240}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: n[absorb]
+\newcommand{\VEqDoubleStagesPass}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com veredito PASS (double)
+\newcommand{\VEqDoubleMaxRatio}{0.55}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: máx razao_tol_max nas etapas sem empate/FAIL (double)
+\newcommand{\VEqDoubleDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass+pass_empate[decisao] (double)
+\newcommand{\VEqFloatStagesPass}{25}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com veredito PASS (float)
+\newcommand{\VEqFloatMaxRatio}{0.34}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: máx razao_tol_max nas etapas sem empate/FAIL (float)
+\newcommand{\VEqFloatDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass+pass_empate[decisao] (float)
+\newcommand{\VEqSosdStagesPass}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com veredito PASS (float-sosd)
+\newcommand{\VEqSosdMaxRatio}{0.23}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: máx razao_tol_max nas etapas sem empate/FAIL (float-sosd)
+\newcommand{\VEqSosdDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass+pass_empate[decisao] (float-sosd)
+\newcommand{\VEqFloatZFail}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: fail[float,z]
+\newcommand{\VEqFloatZPass}{162}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass[float,z]
+\newcommand{\VEqFloatFailStages}{z}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem PASS (float)
+\newcommand{\VEqFloatTieStages}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com PASS_EMPATE (float)
+\newcommand{\VEqFloatTieCases}{2}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: ids com PASS_EMPATE em env_mod
+\newcommand{\VEqFloatTieCaseIds}{borda\_dc\_ruido3s\_ma2212, borda\_dc\_ruido3s\_midmt}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: id
+\newcommand{\VEqFloatTieGap}{\ensuremath{9.4\times10^{-16}}}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: detalhe[env_mod]: P_ref[ref]-P_ref[C]
+\newcommand{\VEqFloatTieTol}{\ensuremath{6.3\times10^{-11}}}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: detalhe[env_mod]: 2·tol
+\newcommand{\VEqFloatFmodErr}{37.1}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: err_max[features[9]:f_mod] (empate)
+\newcommand{\VEqFloatZErrMax}{1.61}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: err_max[z] (FAIL)
+\newcommand{\VEqFloatZFailIsEdge}{1}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: todos os FAIL de z são casos de borda (1=sim)
+\newcommand{\VEqEnvDecFloatMed}{\ensuremath{1.2\times10^{-5}}}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: mediana err_rel_max[env_dec]
+\newcommand{\VEqEnvDecSosdMed}{\ensuremath{1.2\times10^{-7}}}% [equivalencia] embarcados/results/csv/equivalencia_float-sosd_20261024-091222.csv :: mediana err_rel_max[env_dec]
+\newcommand{\VEqEnvDecDoubleMed}{\ensuremath{1.1\times10^{-7}}}% [equivalencia] embarcados/results/csv/equivalencia_double_20261024-091106.csv :: mediana err_rel_max[env_dec]
+\newcommand{\VEqTolSha}{d74dae800ceb}% [equivalencia] embarcados/configs/embedded/tolerancias.json :: sha256 (12 primeiros)
+\newcommand{\VEqTolShaRec}{d74dae800ceb}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: sha256_tolerancias gravado no _meta da comparação
+\newcommand{\VEqTolCommit}{447a7c2}% [equivalencia] embarcados/configs/embedded/tolerancias.json :: git log -1 do tolerancias.json
+\newcommand{\VEqTolCommitTime}{2026-10-24 09:10}% [equivalencia] embarcados/configs/embedded/tolerancias.json :: data do commit do tolerancias.json
+\newcommand{\VEqRunTime}{2026-10-24 09:11}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: data da comparação formal (float)
+\newcommand{\VEqGoldClean}{60}% [equivalencia] embarcados/gold/manifest.json :: casos tipo limpo
+\newcommand{\VEqGoldNoisy}{90}% [equivalencia] embarcados/gold/manifest.json :: casos tipo ruidoso
+\newcommand{\VEqGoldEdge}{14}% [equivalencia] embarcados/gold/manifest.json :: casos tipo borda
+\newcommand{\VEqGoldSeqs}{20}% [equivalencia] embarcados/gold/manifest.json :: n_seqs
+\newcommand{\VEqGoldPerts}{5}% [equivalencia] embarcados/gold/manifest.json :: nº de perturbações
+\newcommand{\VEqMinDurValues}{2}% [equivalencia] embarcados/gold/seqs/idmt_seq00/params.json :: len(min_durs_s)
+\newcommand{\VEqEmulDoubleRows}{6{,}852}% [equivalencia] embarcados/results/csv/equivalencia_emul_double_20261024-090737_meta.json :: n_linhas
+\newcommand{\VEqEmulDoublePass}{6{,}852}% [equivalencia] embarcados/results/csv/equivalencia_emul_double_20261024-090737_meta.json :: contagem_status.PASS
+\newcommand{\VEqEmulFloatRows}{6{,}852}% [equivalencia] embarcados/results/csv/equivalencia_emul_float_20261024-090743_meta.json :: n_linhas
+\newcommand{\VEqEmulFloatPass}{6{,}852}% [equivalencia] embarcados/results/csv/equivalencia_emul_float_20261024-090743_meta.json :: contagem_status.PASS
+\newcommand{\VPcCIdmtMed}{13.29}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.c_float_pc/idmt.total_ms.mediana
+\newcommand{\VPcPyIdmtMed}{95.3}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.python_ref/idmt.total_ms.mediana
+\newcommand{\VPcCIdmtPninetyfive}{15.00}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.c_float_pc/idmt.total_ms.p95
+\newcommand{\VPcPyIdmtPninetyfive}{100.2}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.python_ref/idmt.total_ms.p95
+\newcommand{\VPcCIdmtMax}{15.80}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.c_float_pc/idmt.total_ms.max
+\newcommand{\VPcPyIdmtMax}{110.2}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.python_ref/idmt.total_ms.max
+\newcommand{\VPcCIdmtRtf}{0.0044}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: fator_tempo_real_mediana
+\newcommand{\VPcPyIdmtRtf}{0.032}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: fator_tempo_real_mediana
+\newcommand{\VPcSpeedupIdmt}{7.2}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: mediana Python / mediana C
+\newcommand{\VPcCIdmtTrackMed}{5.45}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: rastrear_quadros_ms.mediana
+\newcommand{\VPcCIdmtTrackPct}{41}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·rastrear_quadros_ms.mediana/total_ms.mediana
+\newcommand{\VPcCIdmtVitMed}{5.35}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: viterbi_ms.mediana
+\newcommand{\VPcCIdmtVitPct}{40}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·viterbi_ms.mediana/total_ms.mediana
+\newcommand{\VPcCIdmtEnvMed}{2.27}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: envelope_mod_ms.mediana
+\newcommand{\VPcCIdmtEnvPct}{17}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·envelope_mod_ms.mediana/total_ms.mediana
+\newcommand{\VPcCIdmtFeatMed}{0.013}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: features_ms.mediana
+\newcommand{\VPcCIdmtFeatPct}{0}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·features_ms.mediana/total_ms.mediana
+\newcommand{\VPcCIdmtCosMed}{0.002}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: cosseno_ms.mediana
+\newcommand{\VPcCIdmtCosPct}{0}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·cosseno_ms.mediana/total_ms.mediana
+\newcommand{\VPcNIdmt}{200}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: total_ms.n
+\newcommand{\VPcCBldcMed}{3.18}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.c_float_pc/a2212.total_ms.mediana
+\newcommand{\VPcPyBldcMed}{22.1}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.python_ref/a2212.total_ms.mediana
+\newcommand{\VPcCBldcPninetyfive}{3.84}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.c_float_pc/a2212.total_ms.p95
+\newcommand{\VPcPyBldcPninetyfive}{23.1}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.python_ref/a2212.total_ms.p95
+\newcommand{\VPcCBldcMax}{4.45}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.c_float_pc/a2212.total_ms.max
+\newcommand{\VPcPyBldcMax}{25.3}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: resumo.python_ref/a2212.total_ms.max
+\newcommand{\VPcCBldcRtf}{0.0032}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: fator_tempo_real_mediana
+\newcommand{\VPcPyBldcRtf}{0.022}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: fator_tempo_real_mediana
+\newcommand{\VPcSpeedupBldc}{6.9}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: mediana Python / mediana C
+\newcommand{\VPcCBldcTrackMed}{1.24}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: rastrear_quadros_ms.mediana
+\newcommand{\VPcCBldcTrackPct}{39}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·rastrear_quadros_ms.mediana/total_ms.mediana
+\newcommand{\VPcCBldcVitMed}{1.14}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: viterbi_ms.mediana
+\newcommand{\VPcCBldcVitPct}{36}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·viterbi_ms.mediana/total_ms.mediana
+\newcommand{\VPcCBldcEnvMed}{0.67}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: envelope_mod_ms.mediana
+\newcommand{\VPcCBldcEnvPct}{21}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·envelope_mod_ms.mediana/total_ms.mediana
+\newcommand{\VPcCBldcFeatMed}{0.013}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: features_ms.mediana
+\newcommand{\VPcCBldcFeatPct}{0}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·features_ms.mediana/total_ms.mediana
+\newcommand{\VPcCBldcCosMed}{0.002}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: cosseno_ms.mediana
+\newcommand{\VPcCBldcCosPct}{0}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: 100·cosseno_ms.mediana/total_ms.mediana
+\newcommand{\VPcNBldc}{200}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: total_ms.n
+\newcommand{\VPcWarmup}{5}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: meta.argv.aquecimento
+\newcommand{\VPcDistinctIdmt}{75}% [pc] embarcados/results/csv/bench_pc_20261024-091911.csv :: n_janelas_distintas
+\newcommand{\VPcDistinctBldc}{75}% [pc] embarcados/results/csv/bench_pc_20261024-091911.csv :: n_janelas_distintas
+\newcommand{\VPcCompiler}{MSVC 19.44 x64 \slash{}O2 \slash{}fp:precise}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: meta.compilador
+\newcommand{\VPcNcpu}{16}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: meta.maquina.n_cpu
+\newcommand{\VPcOs}{Windows 11}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: meta.maquina.plataforma
+\newcommand{\VPcSeqWindows}{24}% [pc] embarcados/results/csv/seq_pc_20261024-092103.csv :: nº de linhas (janelas)
+\newcommand{\VPcSeqSwitches}{2}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: len(deteccao_online_c)
+\newcommand{\VPcSeqDelayC}{0}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: max atraso_janelas (C)
+\newcommand{\VPcSeqDelayPy}{0}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: max atraso_janelas (Python)
+\newcommand{\VPcSeqSameDecisions}{1}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: decisoes_iguais_python_c (1=sim)
+\newcommand{\VPcSeqMaxProbDiff}{\ensuremath{3.2\times10^{-6}}}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: max_abs_dif_probs
+\newcommand{\VPcSeqCp}{2}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: cp
+\newcommand{\VPcSeqPerClass}{8}% [pc] embarcados/results/csv/seq_pc_20261024-092103.csv :: janelas por classe
+\newcommand{\VEstWsFloatOneMb}{0.96}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: total_com_tabela/1e6
+\newcommand{\VEstWsFloatOneNoTabMb}{0.61}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: total_sem_tabela/1e6
+\newcommand{\VEstWsFloatOnePhaseBPct}{44}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: faseB/(persistente+max(faseA,faseB))
+\newcommand{\VEstWsFloatThreeMb}{1.86}% [estimativa] embarcados/paper/fontes/ws_float_48000.json :: total_com_tabela/1e6
+\newcommand{\VEstWsFloatThreeNoTabMb}{1.52}% [estimativa] embarcados/paper/fontes/ws_float_48000.json :: total_sem_tabela/1e6
+\newcommand{\VEstWsFloatThreePhaseBPct}{64}% [estimativa] embarcados/paper/fontes/ws_float_48000.json :: faseB/(persistente+max(faseA,faseB))
+\newcommand{\VEstWsDoubleOneMb}{1.79}% [estimativa] embarcados/paper/fontes/ws_double_16000.json :: total_com_tabela/1e6
+\newcommand{\VEstWsDoubleOneNoTabMb}{1.21}% [estimativa] embarcados/paper/fontes/ws_double_16000.json :: total_sem_tabela/1e6
+\newcommand{\VEstWsDoubleOnePhaseBPct}{47}% [estimativa] embarcados/paper/fontes/ws_double_16000.json :: faseB/(persistente+max(faseA,faseB))
+\newcommand{\VEstWsDoubleThreeMb}{3.60}% [estimativa] embarcados/paper/fontes/ws_double_48000.json :: total_com_tabela/1e6
+\newcommand{\VEstWsDoubleThreeNoTabMb}{3.02}% [estimativa] embarcados/paper/fontes/ws_double_48000.json :: total_sem_tabela/1e6
+\newcommand{\VEstWsDoubleThreePhaseBPct}{67}% [estimativa] embarcados/paper/fontes/ws_double_48000.json :: faseB/(persistente+max(faseA,faseB))
+\newcommand{\VEstHarmTableMb}{0.35}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: total_com_tabela - total_sem_tabela
+\newcommand{\VBuildIdf}{v5.5.6}% [build] C:/Espressif/build_p11_esp32s3/project_description.json :: git_revision
+\newcommand{\VBuildGcc}{14.2.0}% [build] C:/Espressif/build_p11_esp32s3/project_description.json :: c_compiler (versão do toolchain esp-)
+\newcommand{\VBuildEspBinKb}{209}% [build] C:/Espressif/build_p11_esp32/size.txt :: binary size (hex)/1024
+\newcommand{\VBuildEspBinPct}{20}% [build] C:/Espressif/build_p11_esp32/size.txt :: bin/partição app
+\newcommand{\VBuildEspFlashCodeKb}{124}% [build] C:/Espressif/build_p11_esp32/size.txt :: Flash Code Used/1024
+\newcommand{\VBuildEspFlashDataKb}{19}% [build] C:/Espressif/build_p11_esp32/size.txt :: Flash Data Used/1024
+\newcommand{\VBuildEspDramKb}{15}% [build] C:/Espressif/build_p11_esp32/size.txt :: DRAM Used/1024
+\newcommand{\VBuildEspDramTotalKb}{176}% [build] C:/Espressif/build_p11_esp32/size.txt :: DRAM Total/1024
+\newcommand{\VBuildEspIramKb}{58}% [build] C:/Espressif/build_p11_esp32/size.txt :: IRAM Used/1024
+\newcommand{\VBuildEspDramName}{DRAM}% [build] C:/Espressif/build_p11_esp32/size.txt :: nome da região de dados interna
+\newcommand{\VBuildEspWsRatio}{10.3}% [estimativa] C:/Espressif/build_p11_esp32/size.txt :: estimativa ws float 3 s / DRAM total
+\newcommand{\VBuildEspWsRatioOne}{5.3}% [estimativa] C:/Espressif/build_p11_esp32/size.txt :: estimativa ws float 1 s / DRAM total
+\newcommand{\VBuildEspsBinKb}{233}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: binary size (hex)/1024
+\newcommand{\VBuildEspsBinPct}{23}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: bin/partição app
+\newcommand{\VBuildEspsFlashCodeKb}{139}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: Flash Code Used/1024
+\newcommand{\VBuildEspsFlashDataKb}{30}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: Flash Data Used/1024
+\newcommand{\VBuildEspsDramKb}{54}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: DIRAM Used/1024
+\newcommand{\VBuildEspsDramTotalKb}{334}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: DIRAM Total/1024
+\newcommand{\VBuildEspsIramKb}{16}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: IRAM Used/1024
+\newcommand{\VBuildEspsDramName}{DIRAM}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: nome da região de dados interna
+\newcommand{\VBuildEspsWsRatio}{5.5}% [estimativa] C:/Espressif/build_p11_esp32s3/size.txt :: estimativa ws float 3 s / DIRAM total
+\newcommand{\VBuildEspsWsRatioOne}{2.8}% [estimativa] C:/Espressif/build_p11_esp32s3/size.txt :: estimativa ws float 1 s / DIRAM total
+\newcommand{\VChipModel}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: chip_modelo
+\newcommand{\VChipCpuMhz}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: cpu_mhz
+\newcommand{\VChipPsramMb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: psram_mb
+\newcommand{\VChipLatIdmtMed}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.mediana
+\newcommand{\VChipLatIdmtPninetyfive}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.p95
+\newcommand{\VChipLatIdmtMax}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.max
+\newcommand{\VChipLatIdmtN}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.n
+\newcommand{\VChipRtfIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_mediana
+\newcommand{\VChipRtfMaxIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_max
+\newcommand{\VChipHeapIntIdmtKb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: heap_min_livre_interna/1024
+\newcommand{\VChipStackIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: pilha_folga_bytes_min
+\newcommand{\VChipWsPsramIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_na_psram
+\newcommand{\VChipWsIdmtMb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_bytes/1e6
+\newcommand{\VChipLatBldcMed}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.mediana
+\newcommand{\VChipLatBldcPninetyfive}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.p95
+\newcommand{\VChipLatBldcMax}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.max
+\newcommand{\VChipLatBldcN}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.n
+\newcommand{\VChipRtfBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_mediana
+\newcommand{\VChipRtfMaxBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_max
+\newcommand{\VChipHeapIntBldcKb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: heap_min_livre_interna/1024
+\newcommand{\VChipStackBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: pilha_folga_bytes_min
+\newcommand{\VChipWsPsramBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_na_psram
+\newcommand{\VChipWsBldcMb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_bytes/1e6
+\newcommand{\VChipEqStagesPass}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: equivalência no chip não rodou
+\newcommand{\VChipEqStages}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: equivalência no chip não rodou
+\newcommand{\VChipEqDecisionPass}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: equivalência no chip não rodou
+\newcommand{\VChipSeqDelay}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fluxo contínuo no chip não rodou

@@ -1,0 +1,21 @@
+== versão regular (6 pp); flags {'wip': False, 'chipmedido': False, 'figesp': False}
+ok: inputs, refs, cites, macros, figuras, ambientes
+== versão WiP (4 pp); flags {'wip': True, 'chipmedido': False, 'figesp': False}
+ok: inputs, refs, cites, macros, figuras, ambientes
+== macros usadas no main.tex: 134; pending entre elas: 16
+   pending: \VChipCpuMhz
+   pending: \VChipEqDecisionPass
+   pending: \VChipEqStages
+   pending: \VChipEqStagesPass
+   pending: \VChipHeapIntIdmtKb
+   pending: \VChipLatBldcMed
+   pending: \VChipLatIdmtMax
+   pending: \VChipLatIdmtMed
+   pending: \VChipLatIdmtN
+   pending: \VChipLatIdmtPninetyfive
+   pending: \VChipModel
+   pending: \VChipPsramMb
+   pending: \VChipRtfBldc
+   pending: \VChipRtfIdmt
+   pending: \VChipSeqDelay
+   pending: \VChipStackIdmt

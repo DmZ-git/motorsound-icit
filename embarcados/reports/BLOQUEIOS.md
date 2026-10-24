@@ -50,6 +50,13 @@ compilado aqui; a contagem de páginas (6 pp regular / 4 pp WiP) não pode ser v
 compilar. Saídas: compilar no Overleaf, ou autorizar a instalação de uma distribuição TeX
 (download fora de bases e pacotes Python).
 
+**Resolvido 24/10, ~9h45:** o Erick autorizou. MiKTeX 25.12 instalado com
+`winget install --id MiKTeX.MiKTeX --scope user --silent` em
+`%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64` (não está no PATH global; scripts acrescentam),
+com `initexmf --set-config-value "[MPM]AutoInstall=1"`. Teste: documento
+`\documentclass[conference]{IEEEtran}` com booktabs/graphicx/amsmath → "Output written on
+t.pdf (1 page)".
+
 ## Não é bloqueio, mas registro
 
 ICE esporádico do GCC (24/10, ~10h): o primeiro build `esp32s3 ref` depois de adicionar a

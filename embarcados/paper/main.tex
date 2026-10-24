@@ -1,0 +1,512 @@
+% main.tex — artigo IEEE ICIT 2027 (IEEEtran conference), Agente E, 24/10/2026.
+% Dois formatos controlados por \ifwip: regular (6 pp, \wipfalse) e WiP (4 pp, \wiptrue).
+% NENHUM número é digitado neste arquivo: todo número vem de numeros.tex (macros \V…),
+% figuras.tex (caminhos) ou das tabelas geradas em ../tables/latex/.
+% Categorias de evidência nas macros: \VEst… estimativa analítica | \VPc… medição no PC |
+% \VBuild… build do firmware (idf.py size) | \VChip… medição no ESP32 (pending sem a bancada).
+% Não compilado aqui (BLOQUEIOS B4); conferido por src/python/gerar_artigo_checar.py.
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+
+\newif\ifwip
+% WiP: compile com  pdflatex -jobname=main_wip "\def\usewip{1}\input{main}"
+\ifdefined\usewip\wiptrue\else\wipfalse\fi
+
+\input{numeros.tex}
+\input{figuras.tex}
+
+\begin{document}
+
+\title{Porting a Harmonic-Sum Rotation Tracker for Acoustic Motor-State Monitoring to a
+Microcontroller: Stage-Wise Verified C Port, Measured Cost, and What Two Public Datasets
+Allow Us to Conclude\ifwip\ (Work in Progress)\fi}
+
+% TODO(autores): nomes e afiliações a preencher pelos autores.
+\author{\IEEEauthorblockN{[Authors to be completed]}
+\IEEEauthorblockA{[Affiliation]}}
+
+\maketitle
+
+\begin{abstract}
+We port to portable C a pipeline that classifies the operating state of small electric motors
+from sound by borrowing ideas from bass-guitar transcription: a harmonic-sum rotation tracker
+decoded by a Viterbi search, \VParNFeat{} physical features, cosine-to-prototype scoring and an
+online hidden Markov model (HMM). The port is checked against the Python reference stage by
+stage, on \VEqCases{} windows and \VEqSeqCombos{} sequence configurations, with tolerances
+committed before the formal comparison. In double precision all \VEqStagesTotal{} stage checks
+pass; in float32, the build intended for the microcontroller, \VEqFloatStagesPass{} of
+\VEqStagesTotal{} pass, the z-score check fails on \VEqFloatZFail{} synthetic edge windows
+whose Welch spectrum has a near-tie, and the class decision is identical on
+\VEqFloatDecisionPass{} of \VEqCases{} windows. Measured on a PC, the C build processes a
+\VParSegIdmt{}-s window in \VPcCIdmtMed{}\,ms (median). An analytical estimate puts its working
+memory at \VEstWsFloatThreeMb{}\,MB, so external PSRAM is required; the firmware builds for
+two ESP32 targets\ifchipmedido, and on the chip the median latency is \VChipLatIdmtMed{}\,ms\else;
+on-chip latency is \VChipLatIdmtMed{}\fi. The pipeline does not outperform simple baselines:
+on the IDMT dataset every method, including a two-number level baseline, saturates because
+class, motor and recording coincide; on the A2212 dataset classical features reach
+\VDiagBalClsBldcFile{} balanced accuracy against \VDiagBalDecBldcFile{} for the pipeline, and
+with a motor held out all methods drop. The contribution is therefore the verified embedded
+implementation, its cost, an interpretable rotation estimate, and an explicit account of what
+these datasets can and cannot support.
+\end{abstract}
+
+\begin{IEEEkeywords}
+acoustic condition monitoring, embedded signal processing, ESP32, rotation tracking,
+Viterbi decoding, reproducibility, data leakage
+\end{IEEEkeywords}
+
+% ======================================================================
+\section{Introduction}
+
+Acoustic monitoring of electric motors is attractive because a microphone is cheap,
+non-intrusive and needs no electrical connection to the machine. Several recent works report
+near-perfect accuracy on two public datasets of small laboratory motors, the
+IDMT-ISA-ELECTRIC-ENGINE set~\cite{grollmisch2019} and the A2212 brushless set~\cite{estacio2023},
+often with deep networks~\cite{melcnn2025,ertarin2025} or large hand-crafted feature banks~\cite{etnext2026,tekin2025}.
+Two aspects receive little attention. First, most of these results split recordings into
+segments before the train/test split, so neighbouring segments of one recording fall on both
+sides. Second, few works measure the cost on a microcontroller; an exception is the edge
+classifier of Strantzalis et al.~\cite{strantzalis2022}, while other TinyML studies stop at a model
+size and never run on hardware~\cite{almaini2026}.
+
+This paper starts from a pipeline that we call Decifrae (p11). It reuses components of a
+music-transcription system: the motor is treated as a ``one-string instrument'' whose
+fundamental (the rotation frequency) is tracked through a sum over its harmonics and decoded with
+a Viterbi search that has a silence state and an octave-jump cost, as a bass transcriber would do.
+The analogy only motivates the \emph{representation}; we do not claim that motor sound is a
+musical note, nor that music-transcription performance transfers to machines.
+
+The question we answer is whether this pipeline fits and runs on an ESP32-class
+microcontroller with an implementation that is demonstrably the same computation as the Python
+reference, and what the two public datasets allow us to conclude about it. Our contributions are:
+\begin{itemize}
+\item a portable C port without dynamic allocation, verified against the Python reference stage
+by stage with tolerances committed before the formal comparison, in double and in float32, with
+every residual discrepancy listed;
+\item a cost account that keeps four categories apart: analytical estimate, measurement on a PC,
+firmware build (\texttt{idf.py size}), and measurement on the ESP32;
+\item an interpretable intermediate output, the tracked rotation frequency, together with a check
+of how far it can be trusted on each dataset;
+\item an evaluation of the pipeline and of simple baselines on the same windows under three
+protocols (random windows, grouped by recording or file, and motor held out), showing that the
+pipeline does not outperform the baselines and that the datasets cannot separate operating
+state from motor identity.
+\end{itemize}
+Three distinctions are kept throughout. We classify the \emph{current operating state} of a
+motor; we do not predict future failures. Both datasets contain small laboratory motors, not
+industrial machines. And an evaluation in which the test motor was also seen in training says
+nothing about generalisation to a new motor.
+
+% ======================================================================
+\section{Related Work}
+
+\emph{Datasets and splits.} Grollmisch et al.~\cite{grollmisch2019} released the IDMT set with
+an official split (training on clean recordings, testing on recordings with added noise) and a
+frame-level network. Each class was recorded on a different motor, so class and physical unit
+coincide. Later works on IDMT and A2212 report near-perfect accuracy with mel-spectrogram
+CNNs~\cite{melcnn2025}, image encodings~\cite{ertarin2025}, wavelet pattern features with
+SVM/kNN~\cite{etnext2026} and wavelet statistics with bagged trees~\cite{tekin2025}; their splits
+operate on segments rather than on recordings. The A2212 data paper~\cite{estacio2023} reports
+no classifier; it documents that the bearing fault exists on a single motor.
+\ifwip\else
+The classical-feature baseline used here follows the feature list described in the abstract of
+Vanaraj et al.~\cite{vanaraj2026}; we only read the abstract, so it is an inspired
+re-implementation, not a reproduction. Glowacz~\cite{glowacz2018} classified a commutator motor
+with a nearest-mean rule on selected spectral lines, the closest precedent of our
+cosine-to-prototype decision.
+\fi
+
+\ifwip
+\emph{Rotation tracking without a tachometer} has been reviewed on vibration
+data~\cite{peeters2019}, and Viterbi decoding over a time--frequency representation predates our
+work~\cite{xi2015}; we add its verified embedded implementation on microphone audio.
+\else
+\emph{Rotation tracking without a tachometer.} Peeters et al.~\cite{peeters2019} review and
+compare tacholess speed estimators on vibration data, including multi-order probabilistic
+approaches that combine several harmonics. Viterbi decoding over a time--frequency
+representation for speed estimation predates our work~\cite{xi2015}, and harmonic weighting has
+been proposed to suppress weak orders~\cite{yoo2023}. Wheat et al.~\cite{wheat2025} build
+features on a harmonic grid given a known operating speed. Our tracker is therefore not new as an
+idea; what we add is its embedded, verified implementation on microphone audio.
+\fi
+
+\ifwip\else
+\emph{Embedded and anomaly-oriented work.} Strantzalis et al.~\cite{strantzalis2022} deploy a
+small CNN on a Cortex-M4 and measure latency, RAM and response time to state changes on IDMT,
+but with a random split of overlapping spectrograms. Almaini et al.~\cite{almaini2026} quantise an
+MFCC network without deploying it.
+\ifwip\else
+Unsupervised anomaly detection with autoencoders on machine sounds~\cite{purohit2019,koizumi2020}
+and its domain-generalisation variants~\cite{harada2023} target a different question (novelty
+rather than state classification) and are not compared here.
+\fi
+\fi
+
+% ======================================================================
+\section{Method}
+\label{sec:method}
+
+Fig.~\ref{fig:arq} summarises the pipeline. Each analysis window (\VParSegIdmt{}\,s for IDMT,
+\VParSegBldc{}\,s for A2212, both at \VParSrKhz{}\,kHz) is RMS-normalised and processed
+independently; only the HMM carries state across windows.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{\FigArq}
+\caption{System overview. Everything inside the dashed box is the C port that runs on the
+microcontroller; audio currently reaches the chip over UART (processor-in-the-loop). The working
+memory is an analytical estimate for the float32 build.}
+\label{fig:arq}
+\end{figure}
+
+\emph{Rotation tracker.} A short-time Fourier transform with a symmetric Hann window of
+\VParNfft{} samples and hop \VParHop{} gives magnitude frames $|X_t(k)|$. For each of
+$J=\VParJ{}$ candidate rotation frequencies $f_j$ on a logarithmic grid from \VParFmin{} to
+\VParFmax{}\,Hz (step \VParStepCents{}~cents), the saliency
+$s_t(j)=\sum_{h=1}^{K}|X_t(h f_j/\Delta f)|$ sums $K=\VParNharm{}$ harmonics with linear
+interpolation between bins, and is normalised per frame to $\tilde e_t(j)\in[0,1]$. The emission
+cost is $-\log(\VParWEnergy{}\,\tilde e_t(j)+\VParEmisEps{})$; a silence state receives a cost
+derived from the frame energy relative to the loudest frame of the window. A Viterbi search
+allows jumps of up to \VParMaxJump{} states (\VParMaxJumpCents{} cents) with a cost proportional
+to the jump, octave jumps of $\pm$\VParOctStates{} states with a fixed cost, and transitions into
+and out of silence. The decoded path gives $f_{rot}(t)$.
+
+\emph{Features and decision.} From the path and the mean power spectrum we compute \VParNFeat{}
+features\ifwip\else{} (Table~\ref{tab:params})\fi: the median and inter-quartile range of $f_{rot}$, the silent-frame
+fraction, the saliency along the path, a harmonic-energy ratio, the relative energy of four groups
+of harmonic orders, the frequency and prominence of the main envelope-modulation peak (Hilbert
+envelope, Butterworth low-pass, decimation to \VParEnvRateHz{}\,Hz, Welch spectrum), the spectral
+centroid and the spectral flatness. Features are z-scored with training statistics and compared
+by cosine with one prototype per class; a softmax with temperature \VParTempCos{} gives class
+probabilities. For streams, an HMM with a fixed change penalty and an extra ``no decision''
+state is run as a causal forward filter, one window at a time.
+
+\ifwip\else
+\input{../tables/latex/parametros_features.tex}
+\fi
+
+\ifwip
+\emph{C port.} The C code follows the Python line by line, compiles unchanged for the PC
+and the ESP-IDF, processes the spectrogram frame by frame, includes a mixed-radix FFT for the
+full-length Hilbert transform, and uses a caller-provided arena instead of dynamic allocation.
+The real type is float32 on the microcontroller and double for verification; the only
+approximation is the named variant \texttt{p11\_c\_sosd} (envelope filter state in double).
+\else
+\emph{C port.} The C code follows the Python line by line and compiles unchanged for the PC and
+for the ESP-IDF. It never stores the full spectrogram: each frame is windowed, transformed by a
+real FFT, accumulated into the mean power spectrum and reduced to its saliency row. The Viterbi
+search needs the whole window (the silence cost uses the maximum frame energy of the window), so
+the normalised saliency and the back-pointers (short integers) are kept; the Hilbert envelope needs an FFT
+of the full window length, which is not a power of two, so the port includes a mixed-radix FFT.
+All buffers live in a caller-provided arena whose size is computed by the same layout function that
+assigns the pointers. The real type is selected at compile time (float32 for the microcontroller,
+double for verification). Index decisions that change integers (grid, medians, rounding of
+harmonic positions) are computed in double in both builds, reproducing the reference's
+round-half-to-even and first-index tie-breaking. Any approximation would be a \emph{named variant};
+the only one used here, \texttt{p11\_c\_sosd}, keeps the state of the envelope filter in double
+precision inside the float32 build.
+\fi
+
+% ======================================================================
+\section{Experimental Setup}
+\label{sec:setup}
+
+\emph{Data and protocols.} We use the \texttt{train/} part of IDMT (the official test set was not
+opened) and all of A2212\ifwip\else{} (Table~\ref{tab:protocols})\fi. All methods are evaluated on exactly the
+same windows and folds. On IDMT, the random-window protocol leaks by construction, and the
+``blocks'' protocol holds out contiguous blocks of each recording; since there is one recording
+per class, it still cannot separate class from motor. On A2212 we compare random windows, a
+grouped split by file, and leave-one-motor-out; because the bearing fault exists only on motor
+M4, we also report leave-one-motor-out without the M4 fold.
+
+\ifwip\else\input{../tables/latex/bases_protocolos.tex}\fi
+
+\emph{Baselines.} A level baseline uses only the RMS and peak of the window with logistic
+regression, once on RMS-normalised audio (only the crest factor remains) and once on raw audio. A
+classical baseline (p04) uses \VParNClassicFeat{} frame statistics (zero-crossing rate, RMS,
+spectral centroid and MFCC means and deviations) with a soft-voting ensemble, inspired
+by~\cite{vanaraj2026}.
+
+\emph{Metrics.} We report balanced accuracy, macro-F1, macro one-vs-rest ROC-AUC from continuous
+scores, and per-class recall. Confidence intervals (\VDataCiLevel{}\%) come from a bootstrap that
+resamples groups (recording blocks or files), stratified by class, with \VDataNBoot{} resamples;
+windows of one group are never treated as independent. For the motor-out protocols the
+independent unit is the motor, of which there are only \VDataBldcMotors{}, so no honest interval
+exists at that level; the file-level interval shown is optimistic.
+
+\ifwip
+\emph{Equivalence protocol.} Golden vectors of every stage were produced by the
+instrumented reference on \VEqCases{} windows (\VEqGoldClean{} clean, \VEqGoldNoisy{} noisy,
+\VEqGoldEdge{} edge cases) and \VEqSeqCombos{} HMM sequence configurations. Per-stage tolerances,
+derived from rounding analysis and an independent emulation, were committed (\texttt{\VEqTolCommit{}})
+before the formal comparison; discrete outputs must agree exactly unless a tie is demonstrated.
+\else
+\emph{Equivalence protocol.} The instrumented Python reference produced golden vectors for every
+stage on \VEqCases{} windows: \VEqGoldClean{} clean validation windows from both datasets,
+\VEqGoldNoisy{} noisy versions under \VEqGoldPerts{} perturbations (white noise at several SNRs and
+synthetic sag and flicker power-quality disturbances), and \VEqGoldEdge{} edge cases (silence, clipping, synthetic
+rotation outside the search range, and a constant offset with tiny noise). The HMM stages were
+checked on \VEqGoldSeqs{} probability sequences under \VParNChangePen{} change penalties and
+\VEqMinDurValues{} minimum durations (\VEqSeqCombos{} configurations). Tolerances for each stage
+were derived from first-order rounding analysis and an independent numerical emulation of each
+build, and committed (commit \texttt{\VEqTolCommit{}}, file hash \texttt{\VEqTolSha{}}\ldots,
+\VEqTolCommitTime{}) before the formal comparison was run (\VEqRunTime{}); the hash is recorded
+in every result row. Continuous stages are compared by maximum error relative to the stage's
+scale; discrete outputs (rotation path, decision, HMM states) must agree exactly unless a tie is
+demonstrated from the reference's own values. A failure at one stage marks later stages as
+downstream. Both emulations passed all comparison rows (\VEqEmulDoublePass{} and \VEqEmulFloatPass{} of
+\VEqEmulFloatRows{}) before the C code was compared.
+\fi
+
+\ifwip
+\emph{Cost measurement.} We keep apart (1) the analytical arena estimate, (2) timings on
+the PC (\VPcNIdmt{} windows per dataset, \VPcCompiler{}), (3) \texttt{idf.py size} of the
+firmware (ESP-IDF \VBuildIdf{}) and (4) on-chip measurements over UART. Energy is not measured.
+\else
+\emph{Cost measurement.} We keep four categories apart. (1) \emph{Analytical estimate}: the
+arena size returned by the C layout function. (2) \emph{Measured on the PC}: \VPcNIdmt{} windows
+per dataset after \VPcWarmup{} warm-up runs, cycling over \VPcDistinctIdmt{} distinct windows,
+timed inside the executable around the core calls (\VPcCompiler{}, \VPcOs{}); the Python reference
+is timed on the same windows. (3) \emph{Firmware build}: \texttt{idf.py size} for ESP32 and
+ESP32-S3 (ESP-IDF \VBuildIdf{}, GCC \VBuildGcc{}, CPU fixed at the configured frequency, radios
+never started). (4) \emph{Measured on the ESP32}: windows are sent over UART and timed with the
+on-chip timer around the processing only, together with heap and stack watermarks. Energy is not
+measured.
+\fi
+
+% ======================================================================
+\section{Results}
+\label{sec:results}
+
+\subsection{Python--C equivalence}
+
+Table~\ref{tab:equiv} summarises the verdicts\ifwip\else{} and Fig.~\ref{fig:equiv} the worst
+error-to-tolerance ratio per stage\fi. In double precision all \VEqStagesTotal{} stage checks pass
+on all windows and sequence configurations (worst ratio \VEqDoubleMaxRatio{} of the tolerance).
+The rotation path, the decision and every HMM output agree exactly. In float32,
+\VEqFloatStagesPass{} of \VEqStagesTotal{} checks pass. The exception is the z-score, which fails
+on \VEqFloatZFail{} of \VEqCases{} windows: both are the synthetic constant-offset-plus-noise edge
+case, once per model. There the envelope is almost constant, and the Welch spectrum has two
+candidate peaks whose reference powers differ by \VEqFloatTieGap{} (tie tolerance
+\VEqFloatTieTol{}). The C code picks the other peak, the modulation-frequency feature moves by
+\VEqFloatFmodErr{}\,Hz, and the z-score, whose tolerance is propagated from the feature tolerances
+and does not inherit the tie exception, fails. Cosines, probabilities and the class decision still
+pass on all windows (\VEqFloatDecisionPass{}/\VEqCases{}). With the named variant
+\texttt{p11\_c\_sosd} every check passes; it reduces the maximum error of the decimated envelope,
+relative to its peak and taken as the median over windows, from \VEqEnvDecFloatMed{} to
+\VEqEnvDecSosdMed{}, because the low-pass poles lie close to
+the unit circle and float32 rounding accumulates in the filter state. These results were obtained
+on the PC; the same comparison on the chip is
+\ifchipmedido reported in Section~\ref{sec:cost}\else pending\fi. An independent audit of
+the comparison is also pending. We therefore claim stage-wise agreement within the
+pre-registered tolerances, with the exceptions above, not unconditional equivalence.
+
+\begin{table}[t]
+\centering
+\scriptsize
+\caption{Stage checks passed on the PC (\VEqCases{} windows; \VEqSeqCombos{} sequence
+configurations). $^\ddagger$PASS only through a demonstrated tie (\VEqFloatTieCases{} edge
+windows). The float32 z-score failure is downstream of that tie; the decision is unchanged.}
+\label{tab:equiv}
+\input{../tables/latex/equivalencia_compacta.tex}
+\end{table}
+
+\ifwip\else
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{\FigEquiv}
+\caption{Worst error-to-tolerance ratio per stage (PC). Ratios below one pass. T: pass through a
+demonstrated tie; F: failure. Exact zeros are drawn at the bottom of the axis.}
+\label{fig:equiv}
+\end{figure}
+\fi
+
+\subsection{Cost}
+\label{sec:cost}
+
+\ifwip\else Table~\ref{tab:resources} lists the resources by category. \fi\emph{Measured on the PC}, the C float32
+build needs \VPcCIdmtMed{}\,ms per \VParSegIdmt{}-s window (p95 \VPcCIdmtPninetyfive{}\,ms) and
+\VPcCBldcMed{}\,ms per \VParSegBldc{}-s window, against \VPcPyIdmtMed{}\,ms and \VPcPyBldcMed{}\,ms
+for the Python reference; the ratio (\VPcSpeedupIdmt{}$\times$) includes interpreter overhead and
+is not an algorithmic comparison. On the PC the per-frame STFT with harmonic sum takes
+\VPcCIdmtTrackPct{}\%, the rotation Viterbi \VPcCIdmtVitPct{}\% and the envelope branch
+\VPcCIdmtEnvPct{}\% of the median time; features and cosine are negligible. These numbers say
+nothing about the latency on the microcontroller.
+
+The \emph{analytical estimate} of the float32 working memory is \VEstWsFloatThreeMb{}\,MB for a
+\VParSegIdmt{}-s window and \VEstWsFloatOneMb{}\,MB for \VParSegBldc{}\,s
+(\VEstWsFloatThreeNoTabMb{} and \VEstWsFloatOneNoTabMb{}\,MB without the precomputed
+harmonic-interpolation table); the Hilbert buffers dominate. This is \VBuildEspsWsRatio{} and
+\VBuildEspsWsRatioOne{} times the internal data-RAM region reported by the \emph{firmware build}
+for the ESP32-S3 (\VBuildEspsDramTotalKb{}\,KiB), so external PSRAM is required for the reference
+computation; reducing it (block-wise Hilbert, smaller twiddle tables) would change the arithmetic
+and would have to be verified as a named variant. The firmware image occupies
+\VBuildEspBinKb{}\,KiB (ESP32) and \VBuildEspsBinKb{}\,KiB (ESP32-S3) of flash; its static use of
+internal RAM is \VBuildEspDramKb{}\,KiB of DRAM plus \VBuildEspIramKb{}\,KiB of IRAM code on the
+ESP32, and \VBuildEspsDramKb{}\,KiB of DIRAM (code and data) on the ESP32-S3. The working arena is
+allocated at run time and is not part of these figures.
+
+\ifchipmedido
+\emph{Measured on the ESP32} (\VChipModel{}, \VChipCpuMhz{}\,MHz, \VChipPsramMb{}\,MB PSRAM), the
+median latency is \VChipLatIdmtMed{}\,ms per \VParSegIdmt{}-s window (p95
+\VChipLatIdmtPninetyfive{}, maximum \VChipLatIdmtMax{}\,ms over \VChipLatIdmtN{} windows), a
+real-time factor of \VChipRtfIdmt{}, and \VChipLatBldcMed{}\,ms per \VParSegBldc{}-s window
+(factor \VChipRtfBldc{}). The minimum free internal heap was \VChipHeapIntIdmtKb{}\,KiB and the
+stack headroom \VChipStackIdmt{}\,bytes. On the chip, \VChipEqStagesPass{} of \VChipEqStages{}
+compared stages passed with the float32 tolerances and the decision agreed on
+\VChipEqDecisionPass{} of \VEqCases{} windows (Fig.~\ref{fig:esplat}).
+\else
+\emph{Measured on the ESP32}: not yet available. The firmware, the processor-in-the-loop host and
+the scripts that fill every \VChipLatIdmtMed{} entry of this paper are ready, but no board had been
+measured when this version was generated. No estimate is substituted for these values.
+\fi
+
+\ifwip\else\input{../tables/latex/recursos.tex}\fi
+
+\iffigesp
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{\FigEspLat}
+\caption{Median latency per stage measured on the ESP32 and on the PC (C float32), log scale.}
+\label{fig:esplat}
+\end{figure}
+\fi
+
+\subsection{Classification under three protocols}
+
+\input{../tables/latex/desempenho_compacto.tex}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{\FigBalacc}
+\caption{Balanced accuracy on the same windows with \VDataCiLevel{}\% group-bootstrap
+intervals. Dotted line: chance. *Intentional leakage.}
+\label{fig:balacc}
+\end{figure}
+
+Table~\ref{tab:desempenho-compacto} and
+Fig.~\ref{fig:balacc} compare the methods. On IDMT every method is near the ceiling under both
+protocols: the RMS-normalised level baseline, which only sees the crest factor, reaches
+\VDiagBalRmsNormIdmtBlk{} balanced accuracy on held-out blocks, and the pipeline and the
+classical features reach \VDiagBalDecIdmtBlk{} and \VDiagBalClsIdmtBlk{}. Because each class is one recording of one motor,
+these numbers measure recording identity and cannot rank the methods.
+
+On A2212 with a grouped split by file, the classical features reach \VDiagBalClsBldcFile{}
+[\VDiagBalClsBldcFileLo{}, \VDiagBalClsBldcFileHi{}], the pipeline \VDiagBalDecBldcFile{}
+[\VDiagBalDecBldcFileLo{}, \VDiagBalDecBldcFileHi{}] and the raw level baseline
+\VDiagBalRmsRawBldcFile{}. The pipeline errs mostly on Healthy (recall
+\VDiagRecDecBldcFileHealthy{}). The random split inflates balanced accuracy by
+\VDiagInflDecBldc{} for the pipeline and \VDiagInflClsBldc{} for the classical features. Holding a
+motor out lowers every method: the classical features fall to \VDiagBalClsBldcMotor{} and the
+pipeline to \VDiagBalDecBldcMotor{}; Bearing recall is \VDiagRecDecBldcMotorBearing{} by
+construction, since the only bearing motor is then absent from training. Without the M4 fold,
+on Healthy versus Propeller of unseen motors, the classical features reach
+\VDiagBalClsBldcNoMfour{}, the RMS-normalised level baseline \VDiagBalRmsNormBldcNoMfour{} and the
+pipeline \VDiagBalDecBldcNoMfour{}. The pipeline never outperforms the classical features, and with a
+motor held out it falls below the level baseline as well.
+
+% matriz de confusão: figures/pdf (FigConf), fora do texto por espaço
+
+\subsection{Interpretability: the tracked rotation}
+
+\ifwip
+On IDMT the median tracked rotation differs by class (\VRotIdmtGoodMed{},
+\VRotIdmtBrokenMed{}, \VRotIdmtHeavyMed{}\,Hz), but class equals motor there. On A2212 it does not
+follow the speed label of the files (rank correlation \VRotBldcSpearman{} over
+\VDataBldcRecordings{} files), so it should not be read as shaft speed on that dataset.
+\else
+The tracker exposes a physical quantity that a technician can inspect\ifwip\else{}
+(Fig.~\ref{fig:spec})\fi. On IDMT, the median tracked rotation is \VRotIdmtGoodMed{},
+\VRotIdmtBrokenMed{} and \VRotIdmtHeavyMed{}\,Hz for good, broken and heavy-load windows, with
+inter-quartile ranges of at most \VRotIdmtHeavyIqr{}\,Hz; \VRotIdmtGoodOctPct{}\% of the good
+windows lie above \VRotOctThr{} times the class median, an octave-type error. Because class equals motor on
+IDMT, these differences cannot be attributed to the operating state. On A2212 the tracked
+rotation does not follow the speed label in the file names: the rank correlation over
+\VDataBldcRecordings{} files is \VRotBldcSpearman{} (per motor: \VRotBldcSpearmanMOne{},
+\VRotBldcSpearmanMTwo{}, \VRotBldcSpearmanMThree{}, \VRotBldcSpearmanMFour{}), and
+\VRotBldcCeilPct{}\% of the windows lie within \VRotCeilPctThr{}\% of the upper limit of the search
+range. The search range was
+chosen on IDMT, and on A2212 the tracker output should not be read as the shaft speed.
+\fi
+
+\ifwip\else
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{\FigSpec}
+\caption{Mean power spectrum of one good and one broken IDMT training window with the harmonic
+comb $k f_{rot}$ (top) and the decoded rotation path (bottom).}
+\label{fig:spec}
+\end{figure}
+\fi
+
+\ifwip\else
+\subsection{Streaming decision}
+
+On a stream of \VPcSeqWindows{} IDMT validation windows (\VPcSeqPerClass{} per class, good, broken,
+heavy load) the online HMM with change penalty \VPcSeqCp{} detected both state changes with a delay
+of \VPcSeqDelayC{} windows in C and \VPcSeqDelayPy{} in Python, with identical decisions
+(maximum probability difference \VPcSeqMaxProbDiff{}), measured on the PC. Given the IDMT
+saturation this checks the implementation, not the detector.
+\ifchipmedido On the chip the worst delay was \VChipSeqDelay{} windows.\fi
+\fi
+
+% ======================================================================
+\section{Discussion}
+
+\emph{What the datasets allow us to conclude.} IDMT, used without its test set, supports no
+statement about operating-state discrimination: one recording per class makes class, motor and
+session the same variable, and a two-number level baseline is as good as any model. A2212 with a
+file-level split supports statements about the state of motors that were \emph{already seen} in
+training, and there a cheap classical feature set is better than our pipeline. Generalisation to a
+new motor is the relevant question for a deployed monitor, and with \VDataBldcMotors{} motors, a
+bearing fault present on one of them and speed ranges that differ by class~\cite{estacio2023}, the
+data can only show that every method degrades; it cannot rank methods or estimate how a monitor
+would behave on another motor. None of these experiments concerns failure prediction, and none
+involves industrial motors. In our runs the random split inflated A2212 balanced accuracy only
+moderately (\VDiagInflClsBldc{} to \VDiagInflDecBldc{}), whereas holding a motor out cost the
+classical features \VDiagDropClsBldc{} and the pipeline \VDiagDropDecBldc{}; published near-perfect
+accuracies on these datasets should be read against that motor confound, which no split by
+segment or by file removes.
+
+\ifwip\else
+\emph{What the embedded work shows.} The C port reproduces the reference stage by stage within
+tolerances that were fixed before the formal comparison, including the discrete Viterbi path and
+the HMM decisions; the residual float32 discrepancy is a numerical tie on a synthetic edge case,
+and it disappears when the envelope filter state is kept in double. The reference computation needs
+about \VEstWsFloatThreeMb{}\,MB of working memory for a \VParSegIdmt{}-s window, which rules out
+boards without PSRAM unless a verified variant reduces it.
+\ifchipmedido
+On the chip it runs at a real-time factor of \VChipRtfIdmt{}.
+\else
+Whether it runs in real time on the chip is still open: the PC timings do not transfer.
+\fi
+\fi
+
+\emph{Limitations and future work.} Energy was not measured (no current sensor), and we do not
+estimate it from datasheets. All audio came from the datasets through the serial link; a real
+I2S microphone, a motor on a test bench with a tachometer to validate the rotation estimate, and
+the official IDMT test set (unopened by design) are future work. The equivalence results have not
+yet been audited independently.
+
+% ======================================================================
+\section{Conclusion}
+
+A music-transcription-inspired pipeline for acoustic motor-state classification was ported to
+portable C and verified against its Python reference stage by stage, with pre-registered
+tolerances: all checks pass in double; in float32 all pass except the z-score on
+\VEqFloatZFail{} synthetic edge windows, with an unchanged decision. Its PC cost is
+\VPcCIdmtMed{}\,ms per window, its estimated working memory requires PSRAM, and its on-chip
+latency is \ifchipmedido\VChipLatIdmtMed{}\,ms\else\VChipLatIdmtMed{}\fi. On the two public
+datasets it does not beat simple baselines, and the datasets themselves cannot separate operating
+state from motor identity. The value of the work lies in the verified, measurable implementation and
+in making these limits explicit.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
