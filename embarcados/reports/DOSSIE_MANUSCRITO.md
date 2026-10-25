@@ -1,6 +1,6 @@
 # Dossiê de evidências para o manuscrito
 
-> Gerado por `embarcados/src/python/gerar_dossie.py` em 20261025-140551 (commit b4504aa). Não editar à mão. Todo valor sai de um arquivo citado; "não medido" e "não disponível" são literais.
+> Gerado por `embarcados/src/python/gerar_dossie.py` em 20261025-153841 (commit 7459bd0). Não editar à mão. Todo valor sai de um arquivo citado; "não medido" e "não disponível" são literais.
 
 ## 1. Bases de dados e protocolo experimental
 
@@ -19,7 +19,7 @@ Contagem por listagem de arquivos feita por este script (o `test/` do IDMT não 
 
 Versões, formatos, sha256 dos zips, contagens do `test/`/`test_cut/` do IDMT (lidas só do cabeçalho em 14/10) e as particularidades (uma gravação por classe no `train/` do IDMT; classe = unidade física no IDMT; Bearing só no motor M4 do A2212; um arquivo A2212 a 44,1 kHz; saturação em Propeller/M1) estão em `docs/DATASETS.md` §1–2. **Arquivos excluídos:** nenhum arquivo inteiro; a sobra final < 3 s de cada `train/<classe>/pure.wav` não vira recorte (decisão dos autores da base).
 
-**Divisão.** O conjunto de teste oficial do IDMT **nunca foi aberto** (trancado por código em `motorsound/io.py`; nota no meta da validação: "validação apenas; test/ do IDMT trancado por motorsound.io"). Todos os números são de **validação cruzada**:
+**Divisão.** Desenvolvimento só em validação cruzada (o teste fica trancado por código em `motorsound/io.py`). O teste oficial do IDMT foi lido **uma única vez**, em 25/10/2026, com autorização do Erick e depois do congelamento commitado das configurações (§2, "Teste oficial do IDMT"). Os demais números são de validação:
 
 - IDMT: blocos temporais. Cada `train/<classe>/pure.wav` em segmentos de 3 s agrupados em 5 blocos contíguos; deixa-um-bloco-de-fora, com o primeiro segmento de cada bloco descartado como guarda. Grupo = (gravação, bloco). Fonte: `docs/DATASETS.md` §3, `motorsound/splits.py`.
 - A2212: `StratifiedGroupKFold` de 5 dobras agrupado por arquivo, segmentos de 1 s; e deixa-um-motor-de-fora (protocolo `motor`), que é o teste com **unidades não vistas**.
@@ -70,6 +70,41 @@ Versões, formatos, sha256 dos zips, contagens do `test/`/`test_cut/` do IDMT (l
 | p04_classicas | 0.998 | 0.981 | 0.613 | 0.92 | 1.0 | 1.0 |
 | p11_decifrae_harmsum | 0.849 | 0.816 | 0.456 | 0.685 | 1.0 | 1.0 |
 
+**Teste oficial do IDMT** (lido uma vez; congelamento em `embarcados/configs/experiments/congelado_teste_idmt_20261025-150739.json`, commitado antes do resultado; script `embarcados/src/python/teste_idmt.py`; resultado `embarcados/results/csv/teste_idmt_20261025-150749.csv`; janelas em `embarcados/results/predictions/teste_idmt_janelas_*.csv`; curvas ROC/PR em `results/csv/teste_idmt_curvas_*.csv`). Treino em todo o `train/` (pure), teste em todas as janelas de 3 s do `test/`. Acurácia balanceada agregada (IC95 por bootstrap de gravações):
+
+| variante | valor | ic95_lo | ic95_hi | n_janelas | n_gravacoes |
+|---|---|---|---|---|---|
+| b00_rmspico_norm | 0.476 | 0.349 | 0.606 | 2021 | 27 |
+| b00_rmspico_bruto | 0.5 | 0.36 | 0.638 | 2021 | 27 |
+| p04_classicas | 0.704 | 0.615 | 0.789 | 2021 | 27 |
+| p11_decifrae_harmsum | 0.595 | 0.471 | 0.714 | 2021 | 27 |
+
+AUC macro um-contra-o-resto:
+
+| variante | valor |
+|---|---|
+| b00_rmspico_norm | 0.728 |
+| b00_rmspico_bruto | 0.753 |
+| p04_classicas | 0.954 |
+| p11_decifrae_harmsum | 0.869 |
+
+Por condição (acurácia balanceada; cada condição tem 3 gravações, uma por classe):
+
+| condicao | b00_rmspico_bruto | b00_rmspico_norm | p04_classicas | p11_decifrae_harmsum |
+|---|---|---|---|---|
+| _todas | 0.5 | 0.476 | 0.704 | 0.595 |
+| atmo_high | 0.333 | 0.343 | 0.486 | 0.381 |
+| atmo_low | 0.713 | 0.465 | 0.986 | 0.828 |
+| atmo_medium | 0.333 | 0.338 | 0.658 | 0.514 |
+| stresstest | 0.463 | 0.382 | 0.626 | 0.602 |
+| talking_1 | 0.333 | 0.352 | 0.648 | 0.431 |
+| talking_2 | 0.333 | 0.333 | 0.629 | 0.414 |
+| talking_3 | 0.357 | 0.338 | 0.643 | 0.524 |
+| talking_4 | 0.333 | 0.333 | 0.619 | 0.419 |
+| whitenoise_low | 0.93 | 0.94 | 0.869 | 0.954 |
+
+Classe = motor também no teste; o resultado mede transferência entre sessões e ruído dos mesmos três motores, não reconhecimento de estado.
+
 Baselines realmente executadas: b00_nivel (RMS + pico, normalizado e bruto) e b01_forma_espectral. Ablações executadas: p11a (grade 10 cents), p12 (sem Viterbi de rotação), p20b (só rotação), HMM × argmax ("p13", em `experimentos/sequencias.py`).
 
 ## 3. Configuração exata da pipeline selecionada (p11_decifrae_harmsum)
@@ -101,6 +136,8 @@ Resultados por etapa, com maior erro e razão erro/tolerância: `embarcados/repo
 - `float`: `embarcados/results/csv/equivalencia_float_20261024-091122_resumo.csv` — itens PASS 4714, PASS_EMPATE 6, FAIL 2, em 39 linhas de etapa.
 - `float-sosd`: `embarcados/results/csv/equivalencia_float-sosd_20261024-091222_resumo.csv` — itens PASS 4720, PASS_EMPATE 0, FAIL 0, em 39 linhas de etapa.
 - variante `p11_c_lowmem` (float, só janelas de 1 s): `embarcados/results/csv/equivalencia_float-lowmem_20261025-135553_resumo.csv` — PASS 1422, FAIL 0.
+- **no ESP32 físico**, `p11_c_lowmem`: `embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv` — FAIL 0; decisão 79/79 casos; razão erro/tolerância máx. 0.187. Só as saídas finais são comparadas (o firmware não devolve as etapas intermediárias, que aparecem como ausentes).
+- teste fora da amostra (24 janelas fora do ouro, PC): `embarcados/results/csv/aud_holdout_20261025-140558_resumo.csv`.
 
 Divergências conhecidas: nos 2 casos sintéticos de borda DC + ruído do build float, o pico do espectro de modulação está no piso de arredondamento float32 nas duas implementações; f_mod difere e o z-score falha; **a decisão de classe coincide**. A auditoria (M1) pede para contar isso como FAIL de borda, não como empate. Concordância de decisão: etapa `decisao` no relatório acima (casos do ouro).
 
@@ -112,26 +149,38 @@ Fluxo contínuo (Python × C no PC, filtro online do HMM):
 
 Manifesto: `embarcados/results/manifests/bancada.json` (lido do chip por `esp_chip_info` pelo firmware; sessões anteriores em `results/manifests/bancada_*.json`).
 
-- Chip: **ESP32** clássico (revisão 301, 2 núcleos), CPU 240.0 MHz, flash 4.0 MB, PSRAM 0.0 MB. **Não é ESP32-S3.** Modelo do pacote/módulo lido pelo esptool: ESP32-D0WD-V3 rev 3.1.
+- Chip: **ESP32** clássico (revisão 301, 2 núcleos), CPU 240.0 MHz, flash 4.0 MB, PSRAM 0.0 MB. **Não é ESP32-S3.** O esptool identificou o chip como ESP32-D0WD-V3 durante a gravação (saída de console, não registrada em arquivo).
 - Placa portadora: placa de desenvolvimento com conversor USB-serial CH9102 e botões BOOT/EN (ou seja, **é uma placa estilo DevKit**). Fabricante e modelo exatos da placa: **não registrados**.
 - SDK: ESP-IDF v5.5.6; compilador do IDF (xtensa-esp32-elf-gcc da toolchain do IDF v5.5.6); flags do núcleo `-O2 -ffp-contract=off P11_REAL=float P11_LOWMEM`; variante `p11_c_lowmem`; compilado em Oct 25 2026 01:36:51. Projeto e configuração: `embarcados/firmware` (`sdkconfig.defaults`, `main/CMakeLists.txt`). Wi-Fi e BT desligados.
-- Execução: processor-in-the-loop. O áudio chega pela serial (ou pela flash); o tempo seria medido com `esp_timer_get_time()` só em torno do processamento, sem aquisição.
+- Execução: processor-in-the-loop. O áudio chega pela serial (ou pela flash); o tempo é medido com `esp_timer_get_time()` só em torno do processamento, sem aquisição.
 
 **Memória, medida no chip.** Variante de referência `p11_c_ref` (`embarcados/results/csv/esp32_memoria_esp32_20261024-182937.csv`): o workspace não cabe —
   - a2212, janela de 16000 amostras: precisa 958480 B contíguos, maior bloco livre 110592 B, PSRAM 0 B.
   - idmt, janela de 48000 amostras: precisa 1863984 B contíguos, maior bloco livre 110592 B, PSRAM 0 B.
 
-Variante `p11_c_lowmem` (pool de blocos, só janelas de 1 s): pool disponível no chip 247664 B de DRAM + 69568 B de IRAM, blocos [[69568, 1], [114624, 0], [110528, 0], [14272, 0], [8240, 0]]; heap livre após o pool 6768 B. O pico do pool com o mesmo layout de blocos é estimado no PC por `tests/equivalence/gerar_lowmem.py` (impresso na execução; não vai para CSV). **Nenhuma janela completou no chip até a geração deste dossiê**; as tentativas estão nos CSVs:
+Variante `p11_c_lowmem` (pool de blocos, só janelas de 1 s): pool disponível no chip 245376 B de DRAM + 69568 B de IRAM, blocos [[69568, 1], [114624, 0], [110528, 0], [14272, 0], [5952, 0]]; heap livre após o pool 7048 B. Tentativas registradas (as primeiras falharam na alocação ou no acesso à IRAM, até as correções do firmware):
   - `embarcados/results/csv/esp32_memoria_esp32_20261024-182937.csv`: a2212: coube=0; idmt: coube=0
   - `embarcados/results/csv/esp32_memoria_esp32_20261024-213702.csv`: a2212: coube=0; idmt: coube=0
   - `embarcados/results/csv/esp32_memoria_esp32_20261024-223440.csv`: a2212: coube=0; idmt: coube=0
   - `embarcados/results/csv/esp32_memoria_esp32_20261025-012527.csv`: a2212: coube=0; idmt: coube=0
   - `embarcados/results/csv/esp32_memoria_esp32_20261025-013338.csv`: a2212: coube=0; idmt: coube=0
   - `embarcados/results/csv/esp32_memoria_esp32_20261025-135427.csv`: a2212: coube=0; idmt: coube=0
+  - `embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv`: a2212: coube=1, ws=303308 B, heap mín. 7584 B; idmt: coube=0
 
 **Tamanho do firmware (build, `idf.py size`, não é medição em execução):** esp32: `embarcados/results/firmware/size_esp32_20261024-101544.txt`, esp32_lowmem: `embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt`.
 
-**Tempo de processamento no ESP32: não medido.** Nenhuma janela completou no chip (a referência não cabe sem PSRAM; a variante lowmem ainda falhava na alocação ou no acesso à IRAM nas tentativas registradas). **Energia: não medida** (não há sensor de corrente). O manuscrito não pode afirmar tempo real nem baixo consumo no ESP32.
+**Tempo de processamento, medido no ESP32** (`embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv`; variante `p11_c_lowmem`, janelas de 1 s do A2212, aquecimento excluído; `esp_timer_get_time()` só em torno do processamento, sem aquisição nem transmissão), ms por janela:
+
+| n | min | media | mediana | p95 | max |
+|---|---|---|---|---|---|
+| 200.0 | 2647.4 | 2647.5 | 2647.5 | 2647.6 | 2647.7 |
+
+Mediana por etapa (ms): prep 1.8, rastreio 2345.5, viterbi 90.7, sal_caminho 0.0, envelope 199.3, features 10.1, cosseno 0.0, init 0.0.
+Fator de tempo real (mediana do total / 1000 ms): 2.65 — **não é tempo real** nesta placa. A janela de 3 s do IDMT não cabe.
+
+**Fluxo contínuo, medido no ESP32** (`embarcados/results/csv/esp32_seq_esp32_20261025-143251.csv`): 30 janelas lidas da flash, detecções [{'troca_em': 10, 'de': 0, 'para': 1, 'atraso_janelas': 0}, {'troca_em': 20, 'de': 1, 'para': 2, 'atraso_janelas': 0}]; decisões iguais às do Python (`embarcados/results/csv/seq_pc_20261024-184829.csv`): 30/30.
+
+**Energia: não medida** (não há sensor de corrente). O manuscrito não pode afirmar tempo real nem baixo consumo no ESP32.
 
 Para comparação, **medição no PC** (não ESP32) por janela, ms, sem aquecimento (`embarcados/results/csv/bench_pc_20261024-091911.csv`; máquina e compilador no meta; o C roda num processo novo por janela e `total_sem_init_ms` exclui a inicialização — ver auditoria m5):
 
@@ -155,6 +204,9 @@ Já existem (dados + script de origem no manifesto `embarcados/results/manifests
 - `embarcados/figures/png/diag_espectro_en_20261023_222831.png`
 - `embarcados/figures/png/equivalencia_erro_etapas.png`
 - `embarcados/figures/png/equivalencia_erro_etapas_en.png`
+- `embarcados/figures/png/esp32_lat_ram_esp32_20261025-143026_en.png`
+- `embarcados/figures/png/teste_idmt_condicoes_en.png`
+- `embarcados/figures/png/teste_idmt_roc_en.png`
 - `embarcados/tables/latex/bases_protocolos.tex`
 - `embarcados/tables/latex/desempenho.tex`
 - `embarcados/tables/latex/desempenho_compacto.tex`
@@ -169,9 +221,10 @@ Situação dos itens pedidos:
 - Tabela comparativa das 20 pipelines: **pronta** (§2 e RESULTADOS_tabelas.md T1), em validação.
 - Desempenho × custo: **pronta só com custo estimado** (pareto_custo.png); com custo medido é inviável (§5).
 - Matriz de confusão: **pronta em validação** para a p11 (diag_confusao_p11_*.png; contagens `cm_pred_*` no CSV de diagnóstico).
-- ROC/PR **no conjunto de teste**: **não disponível**. O teste oficial do IDMT nunca foi aberto (exige autorização explícita do Erick) e o A2212 não tem conjunto de teste separado. AUC macro em validação existe no CSV de diagnóstico (`roc_auc_ovr_macro`); curvas não foram desenhadas.
+- ROC/PR **no teste oficial do IDMT**: **pronto** (pontos em `results/csv/teste_idmt_curvas_*.csv`, ROC em `figures/png/teste_idmt_roc_en.png`; PR só em CSV). O A2212 não tem conjunto de teste separado, então lá só há AUC de validação (`roc_auc_ovr_macro` no CSV de diagnóstico).
+- Matriz de confusão **no teste**: **pronta** (`cm_pred_*` em `results/csv/teste_idmt_2*.csv`).
 - Python × C com linha de identidade e distribuição dos erros: **parcial**; existe equivalencia_erro_etapas.png (erro por etapa contra a tolerância). Um gráfico de dispersão Python × C não foi feito, mas os dados existem (`gold/` + `results/c_out/`, não versionados por tamanho).
-- Distribuição dos tempos no ESP32: **não disponível** (tempo não medido no chip, §5).
+- Distribuição dos tempos no ESP32: **dados prontos** (§5, CSV por janela); a figura do artigo mostra a mediana por etapa (`figures/png/esp32_lat_ram_*`), não a distribuição (a variação entre janelas é < 1 ms).
 
 Código: Python de referência em `pipelines/`, `motorsound/`; C em `embarcados/src/c/`; firmware em `embarcados/firmware/`; testes em `embarcados/tests/`. Manifesto do ouro (partições e casos): `embarcados/gold/manifest.json` (não versionado; gerado por `gerar_ouro.py`). Registros de compilação: `results/firmware/size_*.txt`; testes unitários: `tests/unit/test_p11.py`.
 

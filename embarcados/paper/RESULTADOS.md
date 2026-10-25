@@ -1,7 +1,7 @@
 # Resultados (artigo ICIT 2027, `embarcados/`)
 
 > Gerado por `embarcados/src/python/gerar_artigo_textos.py` a partir de `paper/numeros.json`
-> (commit 8624cbe). Não editar à mão. Validação apenas; o teste oficial do IDMT não foi lido.
+> (commit 8624cbe). Não editar à mão. Validação, salvo a seção do teste oficial do IDMT (lido uma vez).
 > Os números do ESP32 vêm da bancada física, com a variante `p11_c_lowmem`.
 
 ## Equivalência Python × C (medição no PC)
@@ -123,6 +123,20 @@ também do baseline de nível, com intervalos sobrepostos. ROC-AUC macro da p11 
 scores de modelos de folds diferentes e, no fold do M4, p_Bearing = 0 é imposto; por isso não a
 usamos para ordenar métodos. Em toda linha com Bearing, a classe está confundida com o motor M4.
 
+## Teste oficial do IDMT
+
+Com as configurações congeladas e commitadas antes, o teste oficial do IDMT foi lido uma única vez
+(`src/python/teste_idmt.py`), com os modelos treinados em todo o `train/`. Nas 2021 janelas
+de teste (27 gravações, 9 condições), a validação quase perfeita não se sustenta:
+a acurácia balanceada é 0,704 [0,615, 0,789] para as features clássicas,
+0,595 [0,471, 0,714] para a pipeline e 0,476 para o baseline de
+nível normalizado, com AUC macro de 0,954, 0,869 e 0,728. A pipeline atribui
+a good 72,6 % das janelas broken e 45,7 % das
+heavy load, e só lidera sob ruído branco (0,954 contra 0,869 das
+clássicas); nas outras condições fica abaixo das clássicas. Como o treino viu uma única sessão
+limpa por classe e a classe continua igual ao motor, isso mede a transferência entre sessões e
+ruídos dos mesmos três motores, não o reconhecimento do estado de operação.
+
 ## Rotação estimada (interpretabilidade)
 
 No IDMT a rotação mediana rastreada é 25,76, 27,99 e 24,65
@@ -155,9 +169,11 @@ desquantizado), e Bearing é o motor M4; isso confere a implementação, não o 
 
 ## O que as bases permitem concluir
 
-O IDMT sem o seu teste não sustenta nenhuma afirmação sobre discriminar estado de operação: uma
+A validação do IDMT não sustenta nenhuma afirmação sobre discriminar estado de operação: uma
 gravação por classe torna classe, motor e sessão a mesma variável, e o baseline de dois números é
-tão bom quanto qualquer modelo. O A2212 com split por arquivo sustenta afirmações sobre o estado de
+tão bom quanto qualquer modelo. O teste oficial mostra como esse teto é frágil (acurácia
+balanceada 0,595 para a p11 e 0,704 para as clássicas), mas nele a classe continua
+igual ao motor. O A2212 com split por arquivo sustenta afirmações sobre o estado de
 motores já vistos no treino, e ali as features clássicas são melhores que a p11. Generalizar para
 um motor novo é a pergunta relevante para um monitor implantado, e com 4 motores,
 um defeito de rolamento num só deles e faixas de velocidade diferentes por classe, os dados só

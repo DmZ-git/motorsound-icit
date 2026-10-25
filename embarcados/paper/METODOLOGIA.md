@@ -65,8 +65,9 @@ nem medida no chip e por isso fica fora do artigo.
 
 ## Bases, protocolos e métricas
 
-Usamos só o `train/` do IDMT (3 gravações de 3 motores,
-357 janelas; o teste oficial não foi aberto) e o A2212 inteiro
+Desenvolvemos só no `train/` do IDMT (3 gravações de 3 motores,
+357 janelas; o teste oficial foi lido uma única vez, no fim, com as configurações
+congeladas e commitadas antes, em `configs/experiments/congelado_teste_idmt_*.json`) e no A2212 inteiro
 (43 arquivos de 4 motores, 22 Healthy,
 14 Propeller e 7 Bearing; 430 janelas).
 Todos os métodos usam exatamente as mesmas janelas e os mesmos folds. No IDMT comparamos o split
@@ -104,9 +105,9 @@ têm de coincidir exatamente, salvo empate demonstrado com os valores da própri
 falha numa etapa marca as seguintes como "a jusante". Cronologia: o porte em C foi depurado contra
 os mesmos vetores de ouro pelo seu desenvolvedor antes do congelamento (commit do porte anterior ao
 das tolerâncias). Por isso falamos em tolerâncias "congeladas antes da comparação formal", não em
-pré-registro. A auditoria independente (`reports/independent_scientific_audit.md`) conferiu também
-janelas fora do ouro, que passaram com as tolerâncias congeladas; o número dessas janelas não está
-em CSV do repositório e não é citado. As tolerâncias dos casos de borda foram calibradas no erro da
+pré-registro. Por isso conferimos também janelas fora do ouro, que o desenvolvedor do C nunca viu
+(`src/python/aud_holdout.py`, `results/csv/aud_holdout_*`): todas passaram com as tolerâncias
+congeladas. As tolerâncias dos casos de borda foram calibradas no erro da
 emulação nos mesmos sinais, evidência mais fraca, e algumas são largas no float32 (proeminência de
 modulação e grupos de ordens). A grade de 2 cents e a faixa de 15 a
 60 Hz do rastreador foram escolhidas olhando o `train/` do IDMT.
