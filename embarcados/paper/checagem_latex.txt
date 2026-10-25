@@ -2,4 +2,4 @@
 ok: inputs, refs, cites, macros, figuras, ambientes
 == versão WiP (4 pp); flags {'wip': True, 'chipmedido': True, 'figesp': True}
 ok: inputs, refs, cites, macros, figuras, ambientes
-== macros usadas no main.tex: 131; pending entre elas: 0
+== macros usadas no main.tex: 127; pending entre elas: 0
