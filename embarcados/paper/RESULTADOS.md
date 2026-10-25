@@ -1,7 +1,7 @@
 # Resultados (artigo ICIT 2027, `embarcados/`)
 
 > Gerado por `embarcados/src/python/gerar_artigo_textos.py` a partir de `paper/numeros.json`
-> (commit 5cc552d). Não editar à mão. Validação apenas; o teste oficial do IDMT não foi lido.
+> (commit 8624cbe). Não editar à mão. Validação apenas; o teste oficial do IDMT não foi lido.
 > Os números do ESP32 vêm da bancada física, com a variante `p11_c_lowmem`.
 
 ## Equivalência Python × C (medição no PC)

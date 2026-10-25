@@ -1,7 +1,7 @@
 # Metodologia (artigo ICIT 2027, `embarcados/`)
 
 > Gerado por `embarcados/src/python/gerar_artigo_textos.py` a partir de `paper/numeros.json`
-> (commit 5cc552d). Não editar à mão. Os valores entre parênteses vêm das macros de
+> (commit 8624cbe). Não editar à mão. Os valores entre parênteses vêm das macros de
 > `paper/numeros.tex`, que trazem arquivo e coluna de origem. O histórico da fase exploratória
 > está em `artigo-ICIT/METODOLOGIA.md`, `RESULTADOS.md` e `DECISAO.md` (somente leitura).
 
