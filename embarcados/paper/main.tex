@@ -18,6 +18,7 @@
 \ifdefined\usewip\wiptrue\else\wipfalse\fi
 
 \input{numeros.tex}
+\input{numeros_aud.tex}
 \input{figuras.tex}
 
 \begin{document}
@@ -269,8 +270,10 @@ build, and frozen before the formal comparison (commit \texttt{\VEqTolCommit{}},
 \texttt{\VEqTolSha{}}\ldots, \VEqTolCommitTime{}; comparison run \VEqRunTime{}); the hash is
 recorded in every result row. The chronology matters: the C port had already been debugged
 against the same golden vectors by its developer before the tolerances were frozen, so the
-tolerances are frozen, not pre-registered. The independent auditor therefore also checked windows
-outside the golden set, which passed with the frozen tolerances. Tolerances for the edge cases
+tolerances are frozen, not pre-registered. On \audHoldoutN{} windows outside the golden set,
+unseen by the C developer, path and decision agree on \audHoldoutFloatPathSame{} and
+\audHoldoutFloatDecSame{} in float32, no feature exceeds its tolerance (maximum ratio
+\audHoldoutFloatRatioMax{}) and probabilities differ by at most \audHoldoutFloatDpMax{}. Tolerances for the edge cases
 were calibrated on the emulation error for the same signals, a weaker standard, and some are wide
 in float32 (e.g.\ the modulation prominence). Continuous stages are compared by maximum error relative to the stage's
 scale; discrete outputs (rotation path, decision, HMM states) must agree exactly unless a tie is
@@ -465,9 +468,9 @@ point estimate also falls below the level baseline, with overlapping intervals.
 \ifwip
 On IDMT the median tracked rotation differs by class (\VRotIdmtGoodMed{},
 \VRotIdmtBrokenMed{}, \VRotIdmtHeavyMed{}\,Hz), but class equals motor there. On A2212 its rank
-correlation with the speed label of the files is \VRotBldcSpearman{} pooled over motors but
-positive within motors (\VRotBldcSpearmanMOne{} to \VRotBldcSpearmanMFour{}); the level is not
-comparable across motors, so it should not be read as shaft speed on that dataset.
+correlation with the speed label of the files is \VRotBldcSpearman{} pooled over motors; within
+motors it is \VRotBldcSpearmanMOne{} to \VRotBldcSpearmanMFour{} but significant only for M4
+(\VRotBldcFilesMFour{} files), so it should not be read as shaft speed on that dataset.
 \else
 The tracker exposes a physical quantity that a technician can inspect. On IDMT, the median tracked rotation is \VRotIdmtGoodMed{},
 \VRotIdmtBrokenMed{} and \VRotIdmtHeavyMed{}\,Hz for good, broken and heavy-load windows, with
@@ -476,10 +479,9 @@ windows lie above \VRotOctThr{} times the class median (all at \VRotOctRatioMin{
 times), an octave error. Because class equals motor on IDMT, these differences cannot be
 attributed to the operating state. On A2212, pooled over the \VDataBldcRecordings{} files, the rank
 correlation between the tracked rotation and the speed label in the file names is
-\VRotBldcSpearman{}, but within motors it is positive (\VRotBldcSpearmanMOne{},
-\VRotBldcSpearmanMTwo{}, \VRotBldcSpearmanMThree{} and \VRotBldcSpearmanMFour{} for M1--M4, with
-\VRotBldcFilesMOne{}, \VRotBldcFilesMTwo{}, \VRotBldcFilesMThree{} and \VRotBldcFilesMFour{}
-files): the near-zero pooled value comes from level differences between motors. The absolute level
+\VRotBldcSpearman{}; within motors it is \VRotBldcSpearmanMOne{} to \VRotBldcSpearmanMFour{}
+(\VRotBldcFilesMThree{}--\VRotBldcFilesMTwo{} files each), significant only for M4
+($p \geq \audRotBldcSpearmanPMTwo{}$ for M1--M3). The absolute level
 is not comparable across motors and \VRotBldcCeilPct{}\% of the windows lie within
 \VRotCeilPctThr{}\% of the upper limit of the search range. The range and the grid step were chosen
 on the IDMT training data, so on A2212 the tracker output should not be read as the shaft speed.
