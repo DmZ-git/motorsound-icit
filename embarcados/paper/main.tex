@@ -19,6 +19,7 @@
 
 \input{numeros.tex}
 \input{numeros_aud.tex}
+\input{numeros_teste.tex}
 \input{figuras.tex}
 
 \begin{document}
@@ -49,7 +50,8 @@ windows. On an ESP32 without PSRAM, a named low-memory variant fits \VParSegBldc
 tolerances on all \VChipEqCases{} windows compared, and it is \VChipRtfBldc{} times slower than
 real time, dominated by a table-free harmonic sum in emulated double precision. The pipeline does not outperform simple baselines:
 on the IDMT dataset every method, including a two-number level baseline, saturates because
-class, motor and recording coincide; on the A2212 dataset classical features reach
+class, motor and recording coincide, and on its official test set, read once, balanced accuracy
+falls to \tstBalCls{} (classical features) and \tstBalDec{} (pipeline); on the A2212 dataset classical features reach
 \VDiagBalClsBldcFile{} balanced accuracy against \VDiagBalDecBldcFile{} for the pipeline, and
 with a motor held out all methods drop. The contribution is therefore the verified embedded
 implementation, its cost, an interpretable rotation estimate, and an explicit account of what
@@ -230,8 +232,10 @@ steps. An ESP-DSP option (\texttt{p11\_c\_espdsp}) was neither compared nor meas
 \section{Experimental Setup}
 \label{sec:setup}
 
-\emph{Data and protocols.} We use the \texttt{train/} part of IDMT (the official test set was not
-opened) and all of A2212\ifwip\else{} (Table~\ref{tab:protocols})\fi. All methods are evaluated on exactly the
+\emph{Data and protocols.} We develop on the \texttt{train/} part of IDMT and all of
+A2212\ifwip\else{} (Table~\ref{tab:protocols})\fi. The official IDMT test set was read once, after
+all configurations had been frozen and committed, with models trained on the whole
+\texttt{train/} part; nothing was adjusted afterwards. All methods are evaluated on exactly the
 same windows and folds. On IDMT, the random-window protocol leaks by construction, and the
 ``blocks'' protocol holds out contiguous blocks of each recording; since there is one recording
 per class, it still cannot separate class from motor. On A2212 we compare random windows, a
@@ -424,6 +428,7 @@ and its peak use (measured) against the estimated reference arena (hatched).}
 
 \input{../tables/latex/desempenho_compacto.tex}
 
+\ifwip % na regular, a Fig. do teste oficial ocupa este espaço (ICs no texto)
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{\FigBalacc}
@@ -433,9 +438,9 @@ Bearing exists only on motor M4 (confounded with motor identity), so motor-out B
 zero by construction.}
 \label{fig:balacc}
 \end{figure}
+\fi
 
-Table~\ref{tab:desempenho-compacto} and
-Fig.~\ref{fig:balacc} compare the methods. On IDMT every method is near the ceiling under both
+Table~\ref{tab:desempenho-compacto}\ifwip{} and Fig.~\ref{fig:balacc}\fi{} compare the methods. On IDMT every method is near the ceiling under both
 protocols: the RMS-normalised level baseline, which only sees the crest factor, reaches
 \VDiagBalRmsNormIdmtBlk{} balanced accuracy on held-out blocks, and the pipeline and the
 classical features reach \VDiagBalDecIdmtBlk{} and \VDiagBalClsIdmtBlk{}. Because each class is one recording of one motor,
@@ -449,15 +454,32 @@ On A2212 with a grouped split by file, the classical features reach \VDiagBalCls
 \VDiagInflDecBldc{} for the pipeline and \VDiagInflClsBldc{} for the classical features. Holding a
 motor out lowers every method: the classical features fall to \VDiagBalClsBldcMotor{} and the
 pipeline to \VDiagBalDecBldcMotor{}; Bearing recall is \VDiagRecDecBldcMotorBearing{} by
-construction, since the only bearing motor is then absent from training. Without the M4 fold,
-on Healthy versus Propeller of unseen motors, the classical features reach
-\VDiagBalClsBldcNoMfour{}, the RMS-normalised level baseline \VDiagBalRmsNormBldcNoMfour{} and the
-pipeline \VDiagBalDecBldcNoMfour{}. Compared like for like (Healthy and Propeller of motors
+construction, since the only bearing motor is then absent from training. Compared like for like (Healthy and Propeller of motors
 M1--M3 under the file split), holding the motor out costs \VDiagDropHPClsBldc{} for the classical
 features and \VDiagDropHPDecBldc{} for the pipeline; the much larger drop of the full motor-out
 protocol is dominated by the Bearing class losing its only training motor. The pipeline never
 outperforms the classical features (it ties at the IDMT ceiling), and with a motor held out its
 point estimate also falls below the level baseline, with overlapping intervals.
+
+\ifwip\else
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../figures/pdf/teste_idmt_condicoes_en.pdf}
+\caption{Balanced accuracy on the official IDMT test set (evaluated once, frozen
+configurations), per recording condition. Training used only the clean recording of each class.}
+\label{fig:test}
+\end{figure}
+\fi
+
+\emph{Official IDMT test set.} On the \tstNWin{} test windows (\tstNRec{} recordings,
+\tstNCond{} conditions) the near-perfect validation does not survive: balanced accuracy is
+\tstBalCls{} [\tstBalClsLo{}, \tstBalClsHi{}] for the classical features, \tstBalDec{}
+[\tstBalDecLo{}, \tstBalDecHi{}] for the pipeline and \tstBalRmsNorm{} for the level baseline
+\ifwip. \else(macro AUC \tstAucCls{}, \tstAucDec{}, \tstAucRmsNorm{}; Fig.~\ref{fig:test}).
+The pipeline labels \tstPredGoodDecBrokenPct{}\% of broken and \tstPredGoodDecHeavyloadPct{}\% of
+heavy-load windows as good, and leads only under white noise (\tstBalDecWhite{} vs.\
+\tstBalClsWhite{}). \fi With one clean training session per class, this measures transfer across
+sessions and noise of the same three motors, not state recognition.
 
 % matriz de confusão: figures/pdf (FigConf), fora do texto por espaço
 
@@ -471,8 +493,8 @@ motors it is \VRotBldcSpearmanMOne{} to \VRotBldcSpearmanMFour{} but significant
 (\VRotBldcFilesMFour{} files), so it should not be read as shaft speed on that dataset.
 \else
 The tracker exposes a physical quantity that a technician can inspect. On IDMT, the median tracked rotation is \VRotIdmtGoodMed{},
-\VRotIdmtBrokenMed{} and \VRotIdmtHeavyMed{}\,Hz for good, broken and heavy-load windows, with
-inter-quartile ranges of at most \VRotIdmtHeavyIqr{}\,Hz; \VRotIdmtGoodOctPct{}\% of the good
+\VRotIdmtBrokenMed{} and \VRotIdmtHeavyMed{}\,Hz for good, broken and heavy-load windows;
+\VRotIdmtGoodOctPct{}\% of the good
 windows lie above \VRotOctThr{} times the class median (all at \VRotOctRatioMin{}--\VRotOctRatioMax{}
 times), an octave error. Because class equals motor on IDMT, these differences cannot be
 attributed to the operating state. On A2212, pooled over the \VDataBldcRecordings{} files, the rank
@@ -502,20 +524,18 @@ decisions equal Python's on \VChipSeqSame{}/\VChipSeqWindows{} windows (HMM step
 % ======================================================================
 \section{Discussion}
 
-\emph{What the datasets allow us to conclude.} IDMT, used without its test set, supports no
-statement about operating-state discrimination: one recording per class makes class, motor and
-session the same variable, and a two-number level baseline is as good as any model. A2212 with a
+\emph{What the datasets allow us to conclude.} IDMT validation supports no statement about
+operating-state discrimination: one recording per class makes class, motor and session the same
+variable, and a two-number level baseline is as good as any model. Its official test set shows
+how fragile that ceiling is (balanced accuracy \tstBalDec{} for the pipeline, \tstBalCls{} for
+classical features), but class still equals motor there. A2212 with a
 file-level split supports statements about the state of motors that were \emph{already seen} in
 training, and there a cheap classical feature set is better than our pipeline. Generalisation to a
 new motor is the relevant question for a deployed monitor, and with \VDataBldcMotors{} motors, a
 bearing fault present on one of them and speed ranges that differ by class~\cite{estacio2023}, the
 data can only show that every method degrades; it cannot rank methods or estimate how a monitor
 would behave on another motor. None of these experiments concerns failure prediction, and none
-involves industrial motors. In our runs the random split inflated A2212 balanced accuracy only
-moderately (\VDiagInflClsBldc{} to \VDiagInflDecBldc{}), and holding a motor out cost, like for
-like on Healthy versus Propeller, a similar amount (\VDiagDropHPClsBldc{} for the classical features,
-\VDiagDropHPDecBldc{} for the pipeline); the large drop of the full motor-out protocol is dominated
-by the Bearing class, which exists only on M4. Published near-perfect accuracies on these datasets
+involves industrial motors. Published near-perfect accuracies on these datasets
 should be read against that confound, which no split by segment or by file removes.
 
 \ifwip\else
@@ -533,8 +553,8 @@ Whether it runs in real time on the chip is still open: the PC timings do not tr
 
 \emph{Limitations and future work.} Energy was not measured (no current sensor), and we do not
 estimate it from datasheets. All audio came from the datasets through the serial link; a real
-I2S microphone, a motor on a test bench with a tachometer to validate the rotation estimate, and
-the official IDMT test set (unopened by design) are future work. The independent audit predates the on-chip measurements.
+I2S microphone and a motor on a test bench with a tachometer to validate the rotation estimate
+are future work. The independent audit predates the on-chip and test-set measurements.
 
 % ======================================================================
 \section{Conclusion}
