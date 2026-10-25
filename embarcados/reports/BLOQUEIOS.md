@@ -57,6 +57,29 @@ com `initexmf --set-config-value "[MPM]AutoInstall=1"`. Teste: documento
 `\documentclass[conference]{IEEEtran}` com booktabs/graphicx/amsmath → "Output written on
 t.pdf (1 page)".
 
+## B1 · resolvido (24/10)
+
+O Erick conectou um ESP32 na COM3 (conversor CH9102). Lido do chip: ESP32 clássico rev. 3.1,
+240 MHz, flash de 4 MB, **sem PSRAM** (`results/manifests/bancada.json`). Ele só tem essa placa.
+
+## B5 · ESP32 sem PSRAM: a referência não cabe (24/10)
+
+O workspace contíguo da `p11_c_ref` é maior que qualquer bloco livre do heap
+(`results/csv/esp32_memoria_esp32_20261024-182937.csv`). O Erick autorizou uma variante nomeada:
+`p11_c_lowmem` (`src/c/p11_lowmem.*`). Problemas encontrados no chip e corrigidos, um por commit:
+fragmentação do pool (melhor encaixe, pedidos do maior ao menor, depois plano conjunto do init e
+da fase A por busca com retrocesso); IRAM não aceita `lsi`/`ssi` (LoadStoreError em
+`p11_preparar`), então só as tabelas de giro, lidas por palavra inteira, vão para a IRAM; reserva
+de heap 12 → 7 KB. Resultado: cabe em janelas de 1 s; a janela de 3 s do IDMT não cabe nesta placa.
+Medir o IDMT no chip exige uma placa com PSRAM.
+
+## B6 · Conexão USB instável e reset sem GPIO0 (24–25/10)
+
+O reset automático da placa puxa o EN mas não o GPIO0 (`Wrong boot mode 0x13`), e a porta caiu
+várias vezes durante a gravação ("Acesso negado", "chip stopped responding", COM3 sumindo). Saída:
+o Erick segura o BOOT enquanto `firmware/gravar_boot_espera.py` pulsa o EN pela RTS e grava só o
+app comprimido; a 921600 baud a serial perdia bytes, resolvido com confirmação "@@A" a cada 1 KB.
+
 ## Não é bloqueio, mas registro
 
 ICE esporádico do GCC (24/10, ~10h): o primeiro build `esp32s3 ref` depois de adicionar a
