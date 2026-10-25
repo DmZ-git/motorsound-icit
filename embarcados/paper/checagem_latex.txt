@@ -1,22 +1,6 @@
-== versão regular (6 pp); flags {'wip': False, 'chipmedido': False, 'figesp': False}
+== versão regular (6 pp); flags {'wip': False, 'chipmedido': True, 'figesp': True}
 ok: inputs, refs, cites, macros, figuras, ambientes
-AVISO dígito na prosa: 'M1--' (linha expandida 394)
-== versão WiP (4 pp); flags {'wip': True, 'chipmedido': False, 'figesp': False}
+AVISO dígito na prosa: '32-bit' (linha expandida 190)
+== versão WiP (4 pp); flags {'wip': True, 'chipmedido': True, 'figesp': True}
 ok: inputs, refs, cites, macros, figuras, ambientes
-== macros usadas no main.tex: 143; pending entre elas: 16
-   pending: \VChipCpuMhz
-   pending: \VChipEqDecisionPass
-   pending: \VChipEqStages
-   pending: \VChipEqStagesPass
-   pending: \VChipHeapIntIdmtKb
-   pending: \VChipLatBldcMed
-   pending: \VChipLatIdmtMax
-   pending: \VChipLatIdmtMed
-   pending: \VChipLatIdmtN
-   pending: \VChipLatIdmtPninetyfive
-   pending: \VChipModel
-   pending: \VChipPsramMb
-   pending: \VChipRtfBldc
-   pending: \VChipRtfIdmt
-   pending: \VChipSeqDelay
-   pending: \VChipStackIdmt
+== macros usadas no main.tex: 153; pending entre elas: 0

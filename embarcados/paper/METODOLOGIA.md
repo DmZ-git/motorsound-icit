@@ -1,7 +1,7 @@
 # Metodologia (artigo ICIT 2027, `embarcados/`)
 
 > Gerado por `embarcados/src/python/gerar_artigo_textos.py` a partir de `paper/numeros.json`
-> (commit 8c97c00). Não editar à mão. Os valores entre parênteses vêm das macros de
+> (commit 5cc552d). Não editar à mão. Os valores entre parênteses vêm das macros de
 > `paper/numeros.tex`, que trazem arquivo e coluna de origem. O histórico da fase exploratória
 > está em `artigo-ICIT/METODOLOGIA.md`, `RESULTADOS.md` e `DECISAO.md` (somente leitura).
 
@@ -52,9 +52,16 @@ verificação), e as decisões que mudam inteiros (grade, medianas, arredondamen
 harmônicas) são feitas em double nos dois builds, reproduzindo o arredondamento meio-para-par e o
 desempate pelo primeiro índice da referência. Toda mudança de aritmética é uma variante nomeada.
 A avaliada aqui, `p11_c_sosd`, mantém em double o estado do filtro do envelope dentro do build
-float32, como o scipy faz; ela é mais precisa, não uma aproximação. Existe no firmware a opção
-`p11_c_espdsp` (FFTs de potência de dois pela ESP-DSP), que nunca foi comparada com a referência e
-não é usada.
+float32, como o scipy faz; ela é mais precisa, não uma aproximação. A placa disponível não tem
+PSRAM, e para ela existe a variante nomeada `p11_c_lowmem`: as mesmas funções do núcleo, mas a
+memória vem de um pool de 5 blocos de RAM interna (DRAM e IRAM, esta só para
+vetores de float lidos por palavra inteira, como as tabelas de giro da FFT), alocados por fase com
+um plano encontrado por busca com retrocesso; a tabela de interpolação harmônica sai e as posições
+dos harmônicos são recalculadas em double a cada quadro; o Hilbert é feito por uma FFT de quatro
+passos, que é a mesma DFT em outra ordem de operações e por isso muda o erro numérico. Ela é
+comparada com a referência pelas mesmas tolerâncias do float32. Existe no firmware a opção
+`p11_c_espdsp` (FFTs de potência de dois pela ESP-DSP), que nunca foi comparada com a referência
+nem medida no chip e por isso fica fora do artigo.
 
 ## Bases, protocolos e métricas
 
@@ -109,11 +116,16 @@ modulação e grupos de ordens). A grade de 2 cents e a faixa de 15 a
 Separamos quatro categorias, também nos nomes das macros. A estimativa analítica (`VEst…`) é o
 tamanho da arena devolvido pela função de layout do C (`p11_host ws <n>`). A medição no PC
 (`VPc…`) faz 200 medições por base depois de 5 de aquecimento, em ciclo sobre
-75 janelas distintas (MSVC 19,44 x64 \slash{}O2 \slash{}fp:precise, Windows 11, 16 CPUs lógicas). O executável C
+75 janelas distintas (MSVC 19.44 x64 /O2 /fp:precise, Windows 11, 16 CPUs lógicas). O executável C
 roda num processo novo por janela (o aquecimento não aquece o C) e o tempo é tomado dentro dele, em
 torno das chamadas do núcleo, sem a inicialização do workspace; a referência Python é cronometrada
 nas mesmas janelas e não tem como excluir a própria inicialização. O build do firmware (`VBuild…`) é o `idf.py size` para ESP32 e ESP32-S3 (ESP-IDF
-v5,5.6, GCC 14,2.0), só estático. A medição no ESP32 (`VChip…`) manda as janelas pela
-serial e mede com o temporizador do chip só em torno do processamento, junto com as marcas de heap
-e de pilha. Só essa última categoria pode ser chamada de "medido no ESP32", e ela ainda está
-pendente. Energia não é medida e não é estimada por datasheet.
+v5.5.6, GCC 14.2.0), só estático; para a variante `p11_c_lowmem` o build é o do
+ESP32. A medição no ESP32 (`VChip…`) foi feita num ESP32 (revisão v3.1, 240
+MHz, 4 MB de flash, 0 MB de PSRAM, ESP-IDF v5.5.6), com rádios nunca
+iniciados. As janelas chegam pela serial e o tempo é tomado com o temporizador do chip só em torno
+de cada chamada do núcleo, junto com as marcas de heap e de pilha; a latência usa 200
+janelas de 1 s em ciclo sobre 75 janelas distintas, depois de
+5 de aquecimento, que ficam fora do resumo. O fluxo contínuo lê as janelas da flash
+do próprio chip. Só essa última categoria pode ser chamada de "medido no ESP32". Energia não é
+medida e não é estimada por datasheet.

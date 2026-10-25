@@ -44,11 +44,12 @@ pass. In float32, the build intended for the microcontroller, all \VEqRealCases{
 audio pass every stage; on \VEqFloatBadCases{} synthetic constant-offset-plus-noise windows the
 envelope-modulation peak lies at the float32 noise floor and the modulation, feature and z-score
 checks fail, while the class decision is identical on \VEqFloatDecisionPass{} of \VEqCases{}
-windows. Measured on a PC, the C build processes a
-\VParSegIdmt{}-s window in \VPcCIdmtMed{}\,ms (median). An analytical estimate puts its working
-memory at \VEstWsFloatThreeMb{}\,MB, so external PSRAM is required; the firmware builds for
-two ESP32 targets\ifchipmedido, and on the chip the median latency is \VChipLatIdmtMed{}\,ms\else;
-on-chip latency is \VChipLatIdmtMed{}\fi. The pipeline does not outperform simple baselines:
+windows. On an ESP32 without PSRAM the reference memory layout (estimated at
+\VEstWsFloatThreeMb{}\,MB for a \VParSegIdmt{}-s window) does not fit. A named low-memory
+variant fits \VParSegBldc{}-s windows, and on the chip its outputs agree with the reference within
+the frozen tolerances on all \VChipEqCases{} windows compared; measured on the chip it is
+\VChipRtfBldc{} times slower than real time, dominated by a table-free harmonic sum in
+software-emulated double precision, and the \VParSegIdmt{}-s window does not fit. The pipeline does not outperform simple baselines:
 on the IDMT dataset every method, including a two-number level baseline, saturates because
 class, motor and recording coincide; on the A2212 dataset classical features reach
 \VDiagBalClsBldcFile{} balanced accuracy against \VDiagBalDecBldcFile{} for the pipeline, and
@@ -85,7 +86,9 @@ musical note, nor that music-transcription performance transfers to machines.
 
 The question we answer is whether this pipeline fits and runs on an ESP32-class
 microcontroller with an implementation that is demonstrably the same computation as the Python
-reference, and what the two public datasets allow us to conclude about it.
+reference, and what the two public datasets allow us to conclude about it. In short, it fits and
+runs on an ESP32 without PSRAM only for \VParSegBldc{}-s windows, through a named low-memory
+variant, and \VChipRtfBldc{} times slower than real time on that board.
 \ifwip
 We contribute a C port verified stage by stage against the reference with tolerances frozen before
 the formal comparison, a cost account that keeps estimate, PC measurement, firmware build and
@@ -99,7 +102,8 @@ Our contributions are:
 by stage with tolerances frozen before the formal comparison, in double and in float32, with
 every residual discrepancy listed;
 \item a cost account that keeps four categories apart: analytical estimate, measurement on a PC,
-firmware build (\texttt{idf.py size}), and measurement on the ESP32;
+firmware build (\texttt{idf.py size}), and measurement on an ESP32 without PSRAM, including the
+low-memory variant needed there;
 \item an interpretable intermediate output, the tracked rotation frequency, together with a check
 of how far it can be trusted on each dataset;
 \item an evaluation of the pipeline and of simple baselines on the same windows under three
@@ -167,8 +171,9 @@ independently; only the HMM carries state across windows.
 \centering
 \includegraphics[width=\columnwidth]{\FigArq}
 \caption{System overview. Everything inside the dashed box is the C port that runs on the
-microcontroller; audio currently reaches the chip over UART (processor-in-the-loop). The working
-memory is an analytical estimate for the float32 build.}
+microcontroller; audio currently reaches the chip over UART (processor-in-the-loop) or from its
+flash. Working memory: analytical estimate of the reference layout, and the pool peak of the
+low-memory variant measured on the ESP32.}
 \label{fig:arq}
 \end{figure}
 
@@ -202,9 +207,12 @@ state is run as a causal forward filter, one window at a time.
 \emph{C port.} The C code follows the Python line by line, compiles unchanged for the PC
 and the ESP-IDF, processes the spectrogram frame by frame, includes a mixed-radix FFT for the
 full-length Hilbert transform, and uses a caller-provided arena instead of dynamic allocation.
-The real type is float32 on the microcontroller and double for verification; the named
-variant \texttt{p11\_c\_sosd} keeps the envelope filter state in double, which is more precise,
-not an approximation.
+The real type is float32 on the microcontroller and double for verification. Any change of
+arithmetic or memory layout is a named variant: \texttt{p11\_c\_sosd} keeps the envelope filter
+state in double (more precise, not an approximation), and \texttt{\VChipVariant}, the one run on
+our board without PSRAM, takes its memory from a pool of internal DRAM and IRAM blocks, drops the
+harmonic table (positions recomputed in double) and computes the Hilbert FFT in four steps. An
+ESP-DSP option (\texttt{p11\_c\_espdsp}) was neither compared nor measured and is left out.
 \else
 \emph{C port.} The C code follows the Python line by line and compiles unchanged for the PC and
 for the ESP-IDF. It never stores the full spectrogram: each frame is windowed, transformed by a
@@ -217,10 +225,13 @@ assigns the pointers. The real type is selected at compile time (float32 for the
 double for verification). Index decisions that change integers (grid, medians, rounding of
 harmonic positions) are computed in double in both builds, reproducing the reference's
 round-half-to-even and first-index tie-breaking. Any change of arithmetic is a \emph{named
-variant}. The one evaluated here, \texttt{p11\_c\_sosd}, keeps the state of the envelope filter in
-double precision inside the float32 build, as SciPy does; it is more precise, not an approximation.
-A firmware option that replaces the power-of-two FFTs by the ESP-DSP library
-(\texttt{p11\_c\_espdsp}) exists but has not been compared with the reference and is not used.
+variant}, compared under the same tolerances. \texttt{p11\_c\_sosd} keeps the envelope filter
+state in double, as SciPy does (more precise, not an approximation). \texttt{\VChipVariant}, run on
+our board without PSRAM, calls the same core functions but carves its memory phase by phase from
+a pool of internal DRAM and IRAM blocks (IRAM, word access only, holds only float vectors such as
+the FFT twiddles), drops the harmonic-interpolation table (bin positions recomputed in double for
+every frame) and computes the Hilbert FFT in four steps, the same DFT in another order. An ESP-DSP
+option (\texttt{p11\_c\_espdsp}) was neither compared nor measured and is left out.
 \fi
 
 % ======================================================================
@@ -284,21 +295,22 @@ downstream. Both emulations passed all comparison rows (\VEqEmulDoublePass{} and
 
 \ifwip
 \emph{Cost measurement.} We keep apart (1) the analytical arena estimate, (2) timings on
-the PC (\VPcNIdmt{} measurements over \VPcDistinctIdmt{} distinct windows, one new process per
-window, workspace initialisation excluded), (3) \texttt{idf.py size} of the
-firmware (ESP-IDF \VBuildIdf{}) and (4) on-chip measurements over UART. Energy is not measured.
+the PC (\VPcNIdmt{} timings cycling over \VPcDistinctIdmt{} distinct windows, each run once in a new
+process, so warm-up does not warm the C code; workspace initialisation excluded), (3)
+\texttt{idf.py size} of the firmware (ESP-IDF \VBuildIdf{}) and (4) measurements on an
+\VChipModel{} without PSRAM (\VChipCpuMhz{}\,MHz; \VChipLatBldcN{} timed windows over UART after
+\VChipLatWarmup{} warm-up runs, on-chip timer around the processing only). Energy is not measured.
 \else
 \emph{Cost measurement.} We keep four categories apart. (1) \emph{Analytical estimate}: the
-arena size returned by the C layout function. (2) \emph{Measured on the PC}: \VPcNIdmt{}
-measurements per dataset cycling over \VPcDistinctIdmt{} distinct windows, after \VPcWarmup{}
-warm-up runs (\VPcCompiler{}, \VPcOs{}). The C executable is started anew for each window, so the
-warm-up does not warm the C code, and its time is taken inside the executable around the core
-calls, excluding the workspace initialisation; the Python reference is timed on the same windows
-and cannot exclude its own initialisation. (3) \emph{Firmware build}: \texttt{idf.py size} for ESP32 and
-ESP32-S3 (ESP-IDF \VBuildIdf{}, GCC \VBuildGcc{}, CPU fixed at the configured frequency, radios
-never started). (4) \emph{Measured on the ESP32}: windows are sent over UART and timed with the
-on-chip timer around the processing only, together with heap and stack watermarks. Energy is not
-measured.
+arena size returned by the C layout function. (2) \emph{Measured on the PC}: \VPcNIdmt{} timings
+per dataset cycling over \VPcDistinctIdmt{} distinct windows. The C executable is started anew and
+timed once per window, so warm-up does not warm it, and its time excludes the workspace
+initialisation, which the Python timing cannot exclude; the two effects partly offset.
+(3) \emph{Firmware build}: \texttt{idf.py size} (ESP-IDF \VBuildIdf{}, GCC \VBuildGcc{}).
+(4) \emph{Measured on the ESP32}: an \VChipModel{} (rev.\ \VChipRev{}, \VChipCpuMhz{}\,MHz,
+\VChipFlashMb{}\,MB flash, no PSRAM, radios never started); windows arrive over UART (or, for the
+stream, from flash) and are timed with the on-chip timer around each core call, with heap and
+stack watermarks. Energy is not measured.
 \fi
 
 % ======================================================================
@@ -318,8 +330,8 @@ power at the bin chosen by the C code: not a tie). We count the modulation, feat
 checks as failed there (\VEqFloatStagesPassStrict{} of \VEqStagesTotal{} checks pass on all
 windows); the class decision agrees on \VEqFloatDecisionPass{} of \VEqCases{} windows. The named
 variant \texttt{p11\_c\_sosd} passes every check. An independent audit reproduced the comparison
-from a clean build; its corrections are applied here. These are PC results; on-chip equivalence is
-pending.
+from a clean build; its corrections are applied here. These are PC results; the comparison on the
+chip is in Section~\ref{sec:cost}.
 \else
 Table~\ref{tab:equiv} summarises the verdicts\ifwip\else{} and Fig.~\ref{fig:equiv} the worst
 error-to-tolerance ratio per stage\fi. In double precision all \VEqStagesTotal{} stage checks pass
@@ -342,7 +354,8 @@ relative to its peak and taken as the median over windows, from \VEqEnvDecFloatM
 the unit circle and float32 rounding accumulates in the filter state. These results were obtained
 on the PC; the same comparison on the chip is
 \ifchipmedido reported in Section~\ref{sec:cost}\else pending\fi. An independent audit
-reproduced the comparison from a clean build and its corrections are applied here. We therefore
+(report in the repository) reproduced the comparison from a clean build and its corrections are
+applied here. We therefore
 claim stage-wise agreement within tolerances frozen before the formal comparison, with the
 exceptions above, not unconditional equivalence.
 \fi
@@ -372,43 +385,47 @@ tie). Exact zeros are drawn at the bottom of the axis.}
 \subsection{Cost}
 \label{sec:cost}
 
-\ifwip\else Table~\ref{tab:resources} lists the resources by category. \fi\emph{Measured on the PC}, the C float32
-build needs \VPcCIdmtMed{}\,ms per \VParSegIdmt{}-s window (p95 \VPcCIdmtPninetyfive{}\,ms) and
-\VPcCBldcMed{}\,ms per \VParSegBldc{}-s window, against \VPcPyIdmtMed{}\,ms and \VPcPyBldcMed{}\,ms
-for the Python reference; the ratio (\VPcSpeedupIdmt{}$\times$) includes interpreter overhead and
-is not an algorithmic comparison. On the PC the per-frame STFT with harmonic sum takes
-\VPcCIdmtTrackPct{}\%, the rotation Viterbi \VPcCIdmtVitPct{}\% and the envelope branch
-\VPcCIdmtEnvPct{}\% of the median time; features and cosine are negligible. These numbers say
-nothing about the latency on the microcontroller.
+\ifwip
+\emph{Measured on the PC},
+the C float32 build of the reference layout needs \VPcCIdmtMed{}\,ms per \VParSegIdmt{}-s window
+and \VPcCBldcMed{}\,ms per \VParSegBldc{}-s window, against \VPcPyIdmtMed{}\,ms and
+\VPcPyBldcMed{}\,ms for the Python reference (\VPcSpeedupIdmt{}$\times$, including interpreter
+overhead); the STFT with harmonic sum takes \VPcCIdmtTrackPct{}\%, the rotation Viterbi
+\VPcCIdmtVitPct{}\% and the envelope branch \VPcCIdmtEnvPct{}\% of the median time. These numbers
+say nothing about the microcontroller.
+\else
+Table~\ref{tab:resources} lists the resources by category. The PC timings (column 2; the STFT
+with harmonic sum takes \VPcCIdmtTrackPct{}\%, the rotation Viterbi \VPcCIdmtVitPct{}\% and the
+envelope branch \VPcCIdmtEnvPct{}\% of the median) say nothing about the microcontroller.
+\fi
 
-The \emph{analytical estimate} of the float32 working memory is \VEstWsFloatThreeMb{}\,MB for a
-\VParSegIdmt{}-s window and \VEstWsFloatOneMb{}\,MB for \VParSegBldc{}\,s
-(\VEstWsFloatThreeNoTabMb{} and \VEstWsFloatOneNoTabMb{}\,MB without the precomputed
-harmonic-interpolation table); the Hilbert buffers dominate. In one unit, the arena
-(\VEstWsFloatThreeKib{} and \VEstWsFloatOneKib{}\,KiB) is at least \VBuildEspsWsRatio{} and
-\VBuildEspsWsRatioOne{} times the whole internal DIRAM region reported by the \emph{firmware build}
-for the ESP32-S3 (\VBuildEspsDramTotalKb{}\,KiB, of which only \VBuildEspsDramFreeKib{}\,KiB remain
-after static allocation; its IRAM is \VBuildEspsIramPct{}\% used), so external PSRAM is required for
-the reference computation; reducing it (block-wise Hilbert, smaller twiddle tables) would change the arithmetic
-and would have to be verified as a named variant. The firmware image occupies
-\VBuildEspBinKb{}\,KiB (ESP32) and \VBuildEspsBinKb{}\,KiB (ESP32-S3) of flash; its static use of
-internal RAM is \VBuildEspDramKb{}\,KiB of DRAM plus \VBuildEspIramKb{}\,KiB of IRAM code on the
-ESP32, and \VBuildEspsDramKb{}\,KiB of DIRAM (code and data) on the ESP32-S3. The working arena is
-allocated at run time and is not part of these figures.
+The \emph{analytical estimate} of the working memory of the reference layout (one arena) is
+\VEstWsFloatThreeKib{}\,KiB for \VParSegIdmt{}\,s and \VEstWsFloatOneKib{}\,KiB for
+\VParSegBldc{}\,s, at least \VChipRefOverPoolThree{} and \VChipRefOverPoolOne{} times the internal
+RAM that the firmware can hand to the working memory on our board (\VChipPoolKib{}\,KiB, measured)
+and at least \VBuildEspsWsRatio{} and \VBuildEspsWsRatioOne{} times the whole DIRAM of the
+ESP32-S3 \emph{build} (\VBuildEspsDramTotalKb{}\,KiB; its IRAM is \VBuildEspsIramPct{}\% used):
+without PSRAM the reference layout cannot run.
 
 \ifchipmedido
-\emph{Measured on the ESP32} (\VChipModel{}, \VChipCpuMhz{}\,MHz, \VChipPsramMb{}\,MB PSRAM), the
-median latency is \VChipLatIdmtMed{}\,ms per \VParSegIdmt{}-s window (p95
-\VChipLatIdmtPninetyfive{}, maximum \VChipLatIdmtMax{}\,ms over \VChipLatIdmtN{} windows), a
-real-time factor of \VChipRtfIdmt{}, and \VChipLatBldcMed{}\,ms per \VParSegBldc{}-s window
-(factor \VChipRtfBldc{}). The minimum free internal heap was \VChipHeapIntIdmtKb{}\,KiB and the
-stack headroom \VChipStackIdmt{}\,bytes. On the chip, \VChipEqStagesPass{} of \VChipEqStages{}
-compared stages passed with the float32 tolerances and the decision agreed on
-\VChipEqDecisionPass{} of \VEqCases{} windows (Fig.~\ref{fig:esplat}).
+\emph{Measured on the ESP32} (\VChipPsramMb{}\,MB PSRAM), \texttt{\VChipVariant} fits a
+\VParSegBldc{}-s window: the pool peaks at \VChipWsBldcB{}\,bytes (\VChipWsPoolPct{}\% of it,
+Fig.~\ref{fig:esplat}b), the minimum free internal heap is \VChipHeapIntBldcB{}\,bytes and the
+stack headroom \VChipStackBldc{}\,bytes. The \VParSegIdmt{}-s IDMT window does \emph{not} fit, so
+no IDMT figure exists on the chip. All \VChipEqCases{} golden \VParSegBldc{}-s windows
+(\VChipEqCasesReal{} real, \VChipEqCasesEdge{} edge cases) pass, on the chip, the \VChipEqStages{}
+final outputs the firmware returns (Viterbi path and score through decision), with \VChipEqFail{} failures and a worst error-to-tolerance
+ratio of \VChipEqMaxRatio{}; intermediate stages are not sent back. On the PC the variant passes
+all \VEqLmStages{} compared stages. The median latency is \VChipLatBldcMed{}\,ms per
+\VParSegBldc{}-s window (p95 \VChipLatBldcPninetyfive{}, maximum \VChipLatBldcMax{}\,ms), a
+real-time factor of \VChipRtfBldc{}: on this board the pipeline does \emph{not} run in real time.
+The STFT with harmonic sum takes \VChipBldcTrackPct{}\% of it (Fig.~\ref{fig:esplat}a; on the PC,
+with the table, \VPcCBldcTrackPct{}\%). We attribute this to recomputing the harmonic positions in
+double precision, which the ESP32 only emulates in software (the variant was not timed on the PC);
+a float32 variant of that step or a board with PSRAM is the way towards real time. The variant's
+image occupies \VBuildLmBinKb{}\,KiB of flash (build).
 \else
-\emph{Measured on the ESP32}: not yet available. The firmware, the processor-in-the-loop host and
-the scripts that fill every \VChipLatIdmtMed{} entry of this paper are ready, but no board had been
-measured when this version was generated. No estimate is substituted for these values.
+\emph{Measured on the ESP32}: not available when this version was generated.
 \fi
 
 \ifwip\else\input{../tables/latex/recursos.tex}\fi
@@ -417,7 +434,9 @@ measured when this version was generated. No estimate is substituted for these v
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{\FigEspLat}
-\caption{Median latency per stage measured on the ESP32 and on the PC (C float32), log scale.}
+\caption{Measured on the ESP32 without PSRAM (\texttt{\VChipVariant}, A2212, \VParSegBldc{}-s
+windows). (a) Median time per stage over \VChipLatBldcN{} windows. (b) Internal RAM handed to the
+pool and its peak use (measured) against the estimated reference arena (hatched).}
 \label{fig:esplat}
 \end{figure}
 \fi
@@ -492,12 +511,14 @@ on the IDMT training data, so on A2212 the tracker output should not be read as 
 \ifwip\else
 \subsection{Streaming decision}
 
-On a stream of \VPcSeqWindows{} IDMT validation windows (\VPcSeqPerClass{} per class, good, broken,
-heavy load) the online HMM with change penalty \VPcSeqCp{} detected both state changes with a delay
-of \VPcSeqDelayC{} windows in C and \VPcSeqDelayPy{} in Python, with identical decisions
-(maximum probability difference \VPcSeqMaxProbDiff{}), measured on the PC. Given the IDMT
-saturation this checks the implementation, not the detector.
-\ifchipmedido On the chip the worst delay was \VChipSeqDelay{} windows.\fi
+On a stream of \VPcSeqWindows{} clean A2212 golden windows (\VPcSeqPerClass{} per class:
+Healthy, Propeller, Bearing) the online HMM with change penalty \VPcSeqCp{} detected both changes
+with a delay of \VPcSeqDelayC{} windows in C and \VPcSeqDelayPy{} in Python on the PC (maximum
+probability difference \VPcSeqMaxProbDiff{}).
+\ifchipmedido On the ESP32, the same stream read from flash by \texttt{\VChipVariant} gave a delay
+of \VChipSeqDelay{} windows and online decisions equal to Python's on \VChipSeqSame{} of
+\VChipSeqWindows{} windows; one HMM step takes \VChipSeqHmmUs{}\,$\mu$s.\fi{} Bearing is motor M4,
+so this checks the implementation, not the detector.
 \fi
 
 % ======================================================================
@@ -524,11 +545,11 @@ should be read against that confound, which no split by segment or by file remov
 tolerances that were frozen before the formal comparison, including the discrete Viterbi path and
 the HMM decisions; the residual float32 failures occur only on a synthetic edge case whose
 modulation peak lies at the float32 noise floor, they leave the decision unchanged, and they
-disappear when the envelope filter state is kept in double. The reference computation needs
-about \VEstWsFloatThreeMb{}\,MB of working memory for a \VParSegIdmt{}-s window, which rules out
-boards without PSRAM unless a verified variant reduces it.
+disappear when the envelope filter state is kept in double.
 \ifchipmedido
-On the chip it runs at a real-time factor of \VChipRtfIdmt{}.
+On a board without PSRAM, \texttt{\VChipVariant} runs \VParSegBldc{}-s windows with on-chip outputs
+within those tolerances, but at a real-time factor of \VChipRtfBldc{}, and the \VParSegIdmt{}-s
+window does not fit. We claim neither real-time operation nor low power consumption.
 \else
 Whether it runs in real time on the chip is still open: the PC timings do not transfer.
 \fi
@@ -538,8 +559,8 @@ Whether it runs in real time on the chip is still open: the PC timings do not tr
 estimate it from datasheets. All audio came from the datasets through the serial link; a real
 I2S microphone, a motor on a test bench with a tachometer to validate the rotation estimate, and
 the official IDMT test set (unopened by design) are future work. An independent scientific audit
-of datasets, equivalence and traceability was carried out; it does not cover on-chip results,
-which do not exist yet.
+of datasets, equivalence and traceability (report in the repository) was carried out before the
+on-chip measurements and does not cover them.
 
 % ======================================================================
 \section{Conclusion}
@@ -548,9 +569,11 @@ A music-transcription-inspired pipeline for acoustic motor-state classification 
 portable C and verified against its Python reference stage by stage, with tolerances frozen
 before the formal comparison: all checks pass in double; in float32 every window of real audio
 passes every stage, and only \VEqFloatBadCases{} synthetic edge windows fail the modulation,
-feature and z-score checks, with an unchanged decision. Its PC cost is
-\VPcCIdmtMed{}\,ms per window, its estimated working memory requires PSRAM, and its on-chip
-latency is \ifchipmedido\VChipLatIdmtMed{}\,ms\else\VChipLatIdmtMed{}\fi. On the two public
+feature and z-score checks, with an unchanged decision. On an ESP32 without PSRAM the reference
+layout does not fit; the named variant \texttt{\VChipVariant} fits only \VParSegBldc{}-s windows,
+matches the reference within the frozen tolerances on the chip, and is \VChipRtfBldc{} times slower
+than real time, dominated by the table-free harmonic sum in emulated double precision; a float32
+variant of that step or a board with PSRAM is the way forward. On the two public
 datasets it does not beat simple baselines, and the datasets themselves cannot separate operating
 state from motor identity. The value of the work lies in the verified, measurable implementation and
 in making these limits explicit.

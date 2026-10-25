@@ -1,8 +1,8 @@
 # Resultados (artigo ICIT 2027, `embarcados/`)
 
 > Gerado por `embarcados/src/python/gerar_artigo_textos.py` a partir de `paper/numeros.json`
-> (commit 8c97c00). Não editar à mão. Validação apenas; o teste oficial do IDMT não foi lido.
-> Valores **[pendente]** dependem da bancada do ESP32 físico.
+> (commit 5cc552d). Não editar à mão. Validação apenas; o teste oficial do IDMT não foi lido.
+> Os números do ESP32 vêm da bancada física, com a variante `p11_c_lowmem`.
 
 ## Equivalência Python × C (medição no PC)
 
@@ -27,9 +27,19 @@ janelas) de 1,2 × 10^-5 para 1,2 × 10^-7, porque os polos do passa-baixa ficam
 do círculo unitário e o arredondamento em float32 se acumula no estado do filtro. A afirmação que os
 dados sustentam é concordância etapa a etapa dentro de tolerâncias congeladas antes da comparação
 formal, com a exceção acima; não é equivalência incondicional. A auditoria independente (agente F)
-reproduziu a comparação a partir de um build limpo, e as correções dela estão aplicadas aqui. A
-mesma comparação no chip está pendente (**[pendente]** de **[pendente]** etapas; decisão
-**[pendente]**) e não foi coberta pela auditoria.
+reproduziu a comparação a partir de um build limpo, e as correções dela estão aplicadas aqui.
+
+A variante `p11_c_lowmem` foi comparada com as mesmas tolerâncias do float32, primeiro no PC e
+depois no chip. No PC, as 79 janelas de 1 s do ouro passam nas 18
+etapas comparadas (18 sem falha; maior razão erro/tolerância 0,19;
+decisão igual em 79 de 79). No ESP32, as mesmas 79 janelas
+(75 de áudio real e 4 casos de borda) passam nas 8
+saídas que o firmware devolve pela serial (caminho e escore do Viterbi, envelope de modulação,
+features, z, cossenos, probabilidades e decisão), com 0 falhas, decisão igual em
+79 de 79 e maior razão erro/tolerância 0,19. As
+12 etapas intermediárias não voltam do chip e ficam ausentes, e as janelas de
+3 s do IDMT não couberam na placa, então não há comparação no chip para elas. A
+auditoria independente não cobriu os resultados do chip.
 
 ## Custo
 
@@ -50,18 +60,40 @@ seriam 3,60 e 1,79 MB. Numa unidade só, a arena
 2,8 vezes a região DIRAM interna inteira que o build reporta para o ESP32-S3
 (334 KiB, dos quais só 280 KiB sobram depois da alocação
 estática; a IRAM do S3 está 100 % usada), e 10,3 e
-5,3 vezes a DRAM do ESP32 (176 KiB): a referência exige PSRAM, e qualquer redução (Hilbert por blocos,
-tabelas menores) muda a aritmética e teria de ser verificada como variante nomeada. No build do
-firmware, a imagem ocupa 209 KiB (ESP32, 20 % da partição) e
-233 KiB (ESP32-S3, 23 %); o uso estático de RAM interna é
-15 KiB de DRAM mais 58 KiB de IRAM no ESP32 e 54 KiB
-de DIRAM no ESP32-S3. A arena é alocada em tempo de execução e não entra nesses números.
+5,3 vezes a DRAM do ESP32 (176 KiB): a arena contígua da
+referência (`p11_c_ref`) exige PSRAM. No build do firmware da referência, a imagem ocupa
+209 KiB (ESP32, 20 % da partição) e 233 KiB (ESP32-S3,
+23 %); o uso estático de RAM interna é 15 KiB de DRAM mais
+58 KiB de IRAM no ESP32 e 54 KiB de DIRAM no ESP32-S3. O firmware da
+variante `p11_c_lowmem` para o ESP32 ocupa 215 KiB (21 % da partição;
+130 KiB de código e 20 KiB de dados constantes na flash) e usa,
+de forma estática, 35 de 176 KiB de DRAM e 58 de
+128 KiB de IRAM. A memória de trabalho é alocada em tempo de execução e não entra
+nesses números.
 
-Medido no ESP32: modelo **[pendente]**, **[pendente]** MHz, PSRAM **[pendente]** MB; latência mediana
-**[pendente]** ms em 3 s (p95 **[pendente]**, máximo **[pendente]**)
-e **[pendente]** ms em 1 s; fator de tempo real **[pendente]** e **[pendente]**;
-heap interno mínimo livre **[pendente]** KiB; folga de pilha **[pendente]** bytes. Nenhuma
-estimativa foi posta no lugar desses valores.
+Medido no ESP32 (ESP32, 240 MHz, 0 MB de PSRAM), a referência não
+cabe: a arena estimada é pelo menos 3,0 vezes (1 s) e
+5,9 vezes (3 s) a RAM interna que o firmware consegue entregar ao
+pool (308 KiB, medida). Com a variante `p11_c_lowmem`, a janela de 1 s do
+A2212 cabe: o pico do pool é 303 308 bytes (296 KiB, 96 % do
+pool), nada vai para PSRAM, o heap interno mínimo livre durante o processamento é
+7 584 bytes e a folga mínima de pilha é 20 536 bytes. A janela de
+3 s do IDMT (48 000 amostras) não cabe nesta placa: o plano de alocação não
+encontra lugar com 308 KiB livres, e por isso latência, memória e
+equivalência do IDMT no chip ficam como "não coube", sem número. A latência mediana por
+janela de 1 s é 2647,5 ms (p95 2647,6 ms, máximo
+2647,7 ms, 200 janelas), ou seja, um fator de tempo real de
+2,65: o chip leva 2,65 vezes a duração do áudio e não opera em tempo real nesta
+placa. A STFT por quadro com soma harmônica leva 2345,5 ms (89 % da
+mediana), o ramo do envelope 199,3 ms (8 %), o Viterbi de rotação
+90,7 ms (3 %), as features 10,1 ms e a normalização
+1,8 ms; cosseno e saliência no caminho são desprezíveis. No PC, a etapa de rastreio
+da referência (com tabela) fica com 39 % do tempo do C. Atribuímos o peso dela no
+chip ao fato de a variante recalcular as posições harmônicas em double sem tabela, e o ESP32 só tem double
+por emulação em software; o tempo da variante no PC não foi medido. Os
+caminhos para fechar a diferença são uma variante que faça essas contas em float (que teria de ser
+verificada como variante nomeada) ou uma placa com PSRAM, onde a tabela da referência cabe.
+Energia não foi medida.
 
 ## Classificação nos três protocolos
 
@@ -110,11 +142,16 @@ independentes, então a correlação é descritiva.
 
 ## Decisão em fluxo
 
-Numa sequência de 24 janelas de validação do IDMT (8 por classe, good →
-broken → heavyload), o HMM online com penalidade 2 detectou as 2 trocas com
-atraso de 0 janelas no C e 0 no Python, com decisões iguais (diferença
-máxima de probabilidade 3,2 × 10^-6), medido no PC. Dada a saturação do IDMT, isso confere a
-implementação, não o detector. No chip: atraso máximo **[pendente]** janelas.
+Numa sequência de 30 janelas de 1 s de validação do A2212
+(10 por classe, Healthy → Propeller → Bearing), o HMM online com penalidade
+2 detectou as 2 trocas com atraso de 0 janelas no C e
+0 no Python, com decisões iguais (diferença máxima de probabilidade
+2,7 × 10^-5), medido no PC. No ESP32, a mesma sequência gravada na flash do chip e
+processada janela a janela pela variante `p11_c_lowmem` detectou as 2 trocas com
+atraso de 0 janelas, e a decisão online do chip coincide com a do Python em
+30 de 30 janelas; o passo do HMM leva 104 µs (mediana). As
+janelas são as limpas do ouro, quantizadas em 16 bits na imagem (o PC processou o mesmo áudio
+desquantizado), e Bearing é o motor M4; isso confere a implementação, não o detector.
 
 ## O que as bases permitem concluir
 

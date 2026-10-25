@@ -1,10 +1,10 @@
 % Gerado por embarcados/src/python/gerar_artigo_numeros.py. NÃO EDITAR À MÃO.
-% commit 8c97c004e43bbe76a61d67f40b0cf358aedaa9e5 (árvore suja em embarcados/: True)
+% commit 5cc552d71dd33d4bfe8c219e1a4ffdea8a01ff40 (árvore suja em embarcados/: True)
 % Uma macro por número. Comentário: [categoria] fonte :: coluna.
 % Prefixos: VPar código | VData/VDiag/VRot dados e validação | VEq equivalência (PC)
 %           VEst 1·estimativa analítica | VPc 2·medição no PC | VBuild 3·build do firmware | VChip 4·medição no ESP32
 \newif\ifchipmedido
-\chipmedidofalse  % true só se results/manifests/bancada.json e esp32_lat_* existirem
+\chipmedidotrue  % true só se results/manifests/bancada.json e esp32_lat_* existirem
 
 \newcommand{\VParSr}{16{,}000}% [codigo] pipelines/_decifrae.py :: PreDecifrae.sr
 \newcommand{\VParSrKhz}{16}% [codigo] pipelines/_decifrae.py :: PreDecifrae.sr/1000
@@ -227,24 +227,24 @@
 \newcommand{\VRotBldcFilesMThree}{6}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nº de arquivos do M3
 \newcommand{\VRotBldcSpearmanMFour}{1.00}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: Spearman por motor M4 (7 arquivos)
 \newcommand{\VRotBldcFilesMFour}{7}% [dados] embarcados/results/csv/p11_features_20261023_222831.csv + embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: nº de arquivos do M4
-\newcommand{\VEqStagesTotal}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas por build
-\newcommand{\VEqStagesCase}{20}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas de janela
-\newcommand{\VEqStagesSeq}{6}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas de sequência
-\newcommand{\VEqCases}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: n[y_prep]
-\newcommand{\VEqSeqCombos}{240}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: n[absorb]
-\newcommand{\VEqDoubleStagesPass}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com veredito PASS (double)
-\newcommand{\VEqDoubleMaxRatio}{0.55}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: máx razao_tol_max nas etapas sem empate/FAIL (double)
-\newcommand{\VEqDoubleDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass+pass_empate[decisao] (double)
-\newcommand{\VEqFloatStagesPass}{25}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com veredito PASS (float)
-\newcommand{\VEqFloatMaxRatio}{0.34}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: máx razao_tol_max nas etapas sem empate/FAIL (float)
-\newcommand{\VEqFloatDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass+pass_empate[decisao] (float)
-\newcommand{\VEqSosdStagesPass}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com veredito PASS (float-sosd)
-\newcommand{\VEqSosdMaxRatio}{0.23}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: máx razao_tol_max nas etapas sem empate/FAIL (float-sosd)
-\newcommand{\VEqSosdDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass+pass_empate[decisao] (float-sosd)
-\newcommand{\VEqFloatZFail}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: fail[float,z]
-\newcommand{\VEqFloatZPass}{162}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: pass[float,z]
-\newcommand{\VEqFloatFailStages}{z}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem PASS (float)
-\newcommand{\VEqFloatTieStages}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: nº de etapas com PASS_EMPATE (float)
+\newcommand{\VEqStagesTotal}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: nº de etapas por build
+\newcommand{\VEqStagesCase}{20}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: etapas de janela
+\newcommand{\VEqStagesSeq}{6}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: etapas de sequência
+\newcommand{\VEqCases}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: n[y_prep]
+\newcommand{\VEqSeqCombos}{240}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: n[absorb]
+\newcommand{\VEqDoubleStagesPass}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: nº de etapas com veredito PASS (double)
+\newcommand{\VEqDoubleMaxRatio}{0.55}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: máx razao_tol_max nas etapas sem empate/FAIL (double)
+\newcommand{\VEqDoubleDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: pass+pass_empate[decisao] (double)
+\newcommand{\VEqFloatStagesPass}{25}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: nº de etapas com veredito PASS (float)
+\newcommand{\VEqFloatMaxRatio}{0.34}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: máx razao_tol_max nas etapas sem empate/FAIL (float)
+\newcommand{\VEqFloatDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: pass+pass_empate[decisao] (float)
+\newcommand{\VEqSosdStagesPass}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: nº de etapas com veredito PASS (float-sosd)
+\newcommand{\VEqSosdMaxRatio}{0.23}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: máx razao_tol_max nas etapas sem empate/FAIL (float-sosd)
+\newcommand{\VEqSosdDecisionPass}{164}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: pass+pass_empate[decisao] (float-sosd)
+\newcommand{\VEqFloatZFail}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: fail[float,z]
+\newcommand{\VEqFloatZPass}{162}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: pass[float,z]
+\newcommand{\VEqFloatFailStages}{z}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: etapas sem PASS (float)
+\newcommand{\VEqFloatTieStages}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: nº de etapas com PASS_EMPATE (float)
 \newcommand{\VEqFloatTieCases}{2}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: ids com PASS_EMPATE em env_mod
 \newcommand{\VEqFloatTieCaseIds}{borda\_dc\_ruido3s\_ma2212, borda\_dc\_ruido3s\_midmt}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: id
 \newcommand{\VEqFloatTieGap}{\ensuremath{9.4\times10^{-16}}}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: detalhe[env_mod]: P_ref[ref]-P_ref[C]
@@ -256,10 +256,10 @@
 \newcommand{\VEqEnvDecSosdMed}{\ensuremath{1.2\times10^{-7}}}% [equivalencia] embarcados/results/csv/equivalencia_float-sosd_20261024-091222.csv :: mediana err_rel_max[env_dec]
 \newcommand{\VEqEnvDecDoubleMed}{\ensuremath{1.1\times10^{-7}}}% [equivalencia] embarcados/results/csv/equivalencia_double_20261024-091106.csv :: mediana err_rel_max[env_dec]
 \newcommand{\VEqTolSha}{d74dae800ceb}% [equivalencia] embarcados/configs/embedded/tolerancias.json :: sha256 (12 primeiros)
-\newcommand{\VEqTolShaRec}{d74dae800ceb}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: sha256_tolerancias gravado no _meta da comparação
+\newcommand{\VEqTolShaRec}{d74dae800ceb}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: sha256_tolerancias gravado no _meta da comparação
 \newcommand{\VEqTolCommit}{447a7c2}% [equivalencia] embarcados/configs/embedded/tolerancias.json :: git log -1 do tolerancias.json
 \newcommand{\VEqTolCommitTime}{2026-10-24 09:10}% [equivalencia] embarcados/configs/embedded/tolerancias.json :: data do commit do tolerancias.json
-\newcommand{\VEqRunTime}{2026-10-24 09:11}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: data da comparação formal (float)
+\newcommand{\VEqRunTime}{2026-10-24 09:11}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: data da comparação formal (float)
 \newcommand{\VEqGoldClean}{60}% [equivalencia] embarcados/gold/manifest.json :: casos tipo limpo
 \newcommand{\VEqGoldNoisy}{90}% [equivalencia] embarcados/gold/manifest.json :: casos tipo ruidoso
 \newcommand{\VEqGoldEdge}{14}% [equivalencia] embarcados/gold/manifest.json :: casos tipo borda
@@ -316,14 +316,14 @@
 \newcommand{\VPcCompiler}{MSVC 19.44 x64 \slash{}O2 \slash{}fp:precise}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: meta.compilador
 \newcommand{\VPcNcpu}{16}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: meta.maquina.n_cpu
 \newcommand{\VPcOs}{Windows 11}% [pc] embarcados/results/metrics/bench_pc_20261024-091911.json :: meta.maquina.plataforma
-\newcommand{\VPcSeqWindows}{24}% [pc] embarcados/results/csv/seq_pc_20261024-092103.csv :: nº de linhas (janelas)
-\newcommand{\VPcSeqSwitches}{2}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: len(deteccao_online_c)
-\newcommand{\VPcSeqDelayC}{0}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: max atraso_janelas (C)
-\newcommand{\VPcSeqDelayPy}{0}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: max atraso_janelas (Python)
-\newcommand{\VPcSeqSameDecisions}{1}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: decisoes_iguais_python_c (1=sim)
-\newcommand{\VPcSeqMaxProbDiff}{\ensuremath{3.2\times10^{-6}}}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: max_abs_dif_probs
-\newcommand{\VPcSeqCp}{2}% [pc] embarcados/results/csv/seq_pc_20261024-092103_meta.json :: cp
-\newcommand{\VPcSeqPerClass}{8}% [pc] embarcados/results/csv/seq_pc_20261024-092103.csv :: janelas por classe
+\newcommand{\VPcSeqWindows}{30}% [pc] embarcados/results/csv/seq_pc_20261024-184829.csv :: nº de linhas (janelas)
+\newcommand{\VPcSeqSwitches}{2}% [pc] embarcados/results/csv/seq_pc_20261024-184829_meta.json :: len(deteccao_online_c)
+\newcommand{\VPcSeqDelayC}{0}% [pc] embarcados/results/csv/seq_pc_20261024-184829_meta.json :: max atraso_janelas (C)
+\newcommand{\VPcSeqDelayPy}{0}% [pc] embarcados/results/csv/seq_pc_20261024-184829_meta.json :: max atraso_janelas (Python)
+\newcommand{\VPcSeqSameDecisions}{1}% [pc] embarcados/results/csv/seq_pc_20261024-184829_meta.json :: decisoes_iguais_python_c (1=sim)
+\newcommand{\VPcSeqMaxProbDiff}{\ensuremath{2.7\times10^{-5}}}% [pc] embarcados/results/csv/seq_pc_20261024-184829_meta.json :: max_abs_dif_probs
+\newcommand{\VPcSeqCp}{2}% [pc] embarcados/results/csv/seq_pc_20261024-184829_meta.json :: cp
+\newcommand{\VPcSeqPerClass}{10}% [pc] embarcados/results/csv/seq_pc_20261024-184829.csv :: janelas por classe
 \newcommand{\VEstWsFloatOneMb}{0.96}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: total_com_tabela/1e6
 \newcommand{\VEstWsFloatOneNoTabMb}{0.61}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: total_sem_tabela/1e6
 \newcommand{\VEstWsFloatOnePhaseBPct}{44}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: faseB/(persistente+max(faseA,faseB))
@@ -359,15 +359,23 @@
 \newcommand{\VBuildEspsDramName}{DIRAM}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: nome da região de dados interna
 \newcommand{\VBuildEspsWsRatio}{5.5}% [estimativa] C:/Espressif/build_p11_esp32s3/size.txt :: estimativa ws float 3 s / DIRAM total
 \newcommand{\VBuildEspsWsRatioOne}{2.8}% [estimativa] C:/Espressif/build_p11_esp32s3/size.txt :: estimativa ws float 1 s / DIRAM total
+\newcommand{\VBuildLmBinKb}{215}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: binary size (hex)/1024 (p11_c_lowmem)
+\newcommand{\VBuildLmBinPct}{21}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: bin/partição app
+\newcommand{\VBuildLmFlashCodeKb}{130}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: Flash Code Used/1024
+\newcommand{\VBuildLmFlashDataKb}{20}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: Flash Data Used/1024
+\newcommand{\VBuildLmDramKb}{35}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: DRAM Used/1024 (estático)
+\newcommand{\VBuildLmDramTotalKb}{176}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: DRAM Total/1024
+\newcommand{\VBuildLmIramKb}{58}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: IRAM Used/1024 (estático)
+\newcommand{\VBuildLmIramTotalKb}{128}% [build] embarcados/results/firmware/size_esp32_lowmem_20261025-135632.txt :: IRAM Total/1024
 \newcommand{\VEqFloatBadCases}{2}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: ids com status != PASS (casos)
 \newcommand{\VEqFloatBadAreEdge}{1}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: todos os ids != PASS são borda (1=sim)
 \newcommand{\VEqRealCases}{150}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: nº de casos limpos+ruidosos
 \newcommand{\VEqFloatRealAllPass}{150}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv :: casos limpos+ruidosos com PASS em todas as etapas (float)
-\newcommand{\VEqDoubleStagesPassStrict}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem FAIL e sem PASS_EMPATE (double)
-\newcommand{\VEqFloatStagesPassStrict}{23}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem FAIL e sem PASS_EMPATE (float)
-\newcommand{\VEqSosdStagesPassStrict}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas sem FAIL e sem PASS_EMPATE (float-sosd)
-\newcommand{\VEqFloatStrictFailStages}{env\_mod, features, z}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: etapas com FAIL ou PASS_EMPATE (float)
-\newcommand{\VEqFloatStrictFailN}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-091729.csv :: casos afetados por etapa (máx de fail+pass_empate)
+\newcommand{\VEqDoubleStagesPassStrict}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: etapas sem FAIL e sem PASS_EMPATE (double)
+\newcommand{\VEqFloatStagesPassStrict}{23}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: etapas sem FAIL e sem PASS_EMPATE (float)
+\newcommand{\VEqSosdStagesPassStrict}{26}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: etapas sem FAIL e sem PASS_EMPATE (float-sosd)
+\newcommand{\VEqFloatStrictFailStages}{env\_mod, features, z}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: etapas com FAIL ou PASS_EMPATE (float)
+\newcommand{\VEqFloatStrictFailN}{2}% [equivalencia] embarcados/results/csv/equivalencia_resumo_por_build_20261024-101821.csv :: casos afetados por etapa (máx de fail+pass_empate)
 \newcommand{\VEqDcRefPeakRatio}{4.0}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv + embarcados/gold/casos/borda_dc_ruido3s_ma2212/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_ma2212/welch_P.f32 + embarcados/gold/casos/borda_dc_ruido3s_midmt/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_midmt/welch_P.f32 :: P_ref[bin da ref]/P_ref[bin do C], mínimo nos casos DC (critério do auditor)
 \newcommand{\VEqDcCOverRef}{185}% [equivalencia] embarcados/results/csv/equivalencia_float_20261024-091122.csv + embarcados/gold/casos/borda_dc_ruido3s_ma2212/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_ma2212/welch_P.f32 + embarcados/gold/casos/borda_dc_ruido3s_midmt/welch_P.f64 + embarcados/results/c_out/float/casos/borda_dc_ruido3s_midmt/welch_P.f32 :: P_C[bin do C]/P_ref[bin do C], mínimo nos casos DC
 \newcommand{\VDiagBalRmsNormBldcFileHP}{0.843}% [diagnostico] embarcados/results/predictions/diagnostico_janelas_20261023_222831.csv :: acurácia balanceada (Healthy, Propeller) do split arquivo, só M1-M3
@@ -384,30 +392,76 @@
 \newcommand{\VEstWsFloatOneKib}{936}% [estimativa] embarcados/paper/fontes/ws_float_16000.json :: total_com_tabela/1024
 \newcommand{\VBuildEspsIramPct}{100}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: IRAM Used [%] (S3)
 \newcommand{\VBuildEspsDramFreeKib}{280}% [build] C:/Espressif/build_p11_esp32s3/size.txt :: DIRAM Remain/1024
-\newcommand{\VChipModel}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: chip_modelo
-\newcommand{\VChipCpuMhz}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: cpu_mhz
-\newcommand{\VChipPsramMb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: psram_mb
-\newcommand{\VChipLatIdmtMed}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.mediana
-\newcommand{\VChipLatIdmtPninetyfive}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.p95
-\newcommand{\VChipLatIdmtMax}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.max
-\newcommand{\VChipLatIdmtN}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.idmt.total_ms.n
-\newcommand{\VChipRtfIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_mediana
-\newcommand{\VChipRtfMaxIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_max
-\newcommand{\VChipHeapIntIdmtKb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: heap_min_livre_interna/1024
-\newcommand{\VChipStackIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: pilha_folga_bytes_min
-\newcommand{\VChipWsPsramIdmt}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_na_psram
-\newcommand{\VChipWsIdmtMb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_bytes/1e6
-\newcommand{\VChipLatBldcMed}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.mediana
-\newcommand{\VChipLatBldcPninetyfive}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.p95
-\newcommand{\VChipLatBldcMax}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.max
-\newcommand{\VChipLatBldcN}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: resumo.a2212.total_ms.n
-\newcommand{\VChipRtfBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_mediana
-\newcommand{\VChipRtfMaxBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fator_tempo_real_max
-\newcommand{\VChipHeapIntBldcKb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: heap_min_livre_interna/1024
-\newcommand{\VChipStackBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: pilha_folga_bytes_min
-\newcommand{\VChipWsPsramBldc}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_na_psram
-\newcommand{\VChipWsBldcMb}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: ws_bytes/1e6
-\newcommand{\VChipEqStagesPass}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: equivalência no chip não rodou
-\newcommand{\VChipEqStages}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: equivalência no chip não rodou
-\newcommand{\VChipEqDecisionPass}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: equivalência no chip não rodou
-\newcommand{\VChipSeqDelay}{\textbf{[pending]}}% [esp32] embarcados/results/manifests/bancada.json :: fluxo contínuo no chip não rodou
+\newcommand{\VChipModel}{ESP32}% [esp32] embarcados/results/manifests/bancada.json :: chip_modelo
+\newcommand{\VChipRev}{v3.1}% [esp32] embarcados/results/manifests/bancada.json :: esp_chip_info.revisao (maior*100+menor)
+\newcommand{\VChipCpuMhz}{240}% [esp32] embarcados/results/manifests/bancada.json :: cpu_mhz
+\newcommand{\VChipFlashMb}{4}% [esp32] embarcados/results/manifests/bancada.json :: flash_mb
+\newcommand{\VChipPsramMb}{0}% [esp32] embarcados/results/manifests/bancada.json :: psram_mb
+\newcommand{\VChipIdf}{v5.5.6}% [esp32] embarcados/results/manifests/bancada.json :: idf
+\newcommand{\VChipVariant}{p11\_c\_lowmem}% [esp32] embarcados/results/manifests/bancada.json :: variante
+\newcommand{\VChipPoolB}{314{,}944}% [esp32] embarcados/results/manifests/bancada.json :: esp_chip_info.pool_8bit + pool_32bit
+\newcommand{\VChipPoolKib}{308}% [esp32] embarcados/results/manifests/bancada.json :: (pool_8bit+pool_32bit)/1024
+\newcommand{\VChipPoolBlocks}{5}% [esp32] embarcados/results/manifests/bancada.json :: len(esp_chip_info.pool)
+\newcommand{\VChipHeapBootB}{8{,}488}% [esp32] embarcados/results/manifests/bancada.json :: esp_chip_info.heap_livre_interna (depois de reservar o pool)
+\newcommand{\VChipFitsIdmt}{0}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[idmt] (1=sim)
+\newcommand{\VChipFitsBldc}{1}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[a2212] (1=sim)
+\newcommand{\VChipWsBldcB}{303{,}308}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: ws_bytes[a2212] (pico do pool)
+\newcommand{\VChipWsBldcKib}{296}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: ws_bytes[a2212]/1024
+\newcommand{\VChipWsPoolPct}{96}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv + embarcados/results/manifests/bancada.json :: 100·ws_bytes[a2212]/(pool_8bit+pool_32bit)
+\newcommand{\VChipHeapIntBldcB}{7{,}584}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: heap_min_livre_interna[a2212]
+\newcommand{\VChipHeapIntBldcKib}{7.4}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: heap_min_livre_interna[a2212]/1024
+\newcommand{\VChipWsPsramBldc}{0}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: ws_na_psram[a2212]
+\newcommand{\VChipIdmtFreeAtFailKib}{308}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: livre interna no momento da recusa (idmt)/1024
+\newcommand{\VChipIdmtSamples}{48{,}000}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: n_amostras[idmt]
+\newcommand{\VChipLatBldcMed}{2647.5}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana total_ms (aquecimento excluído)
+\newcommand{\VChipLatBldcPninetyfive}{2647.6}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: p95 total_ms (aquecimento excluído)
+\newcommand{\VChipLatBldcMax}{2647.7}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: máx total_ms (aquecimento excluído)
+\newcommand{\VChipLatBldcMin}{2647.4}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mín total_ms (aquecimento excluído)
+\newcommand{\VChipLatBldcN}{200}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: nº de janelas medidas
+\newcommand{\VChipLatWarmup}{5}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026_meta.json :: argv.aquecimento
+\newcommand{\VChipLatDistinct}{75}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: n_janelas_distintas
+\newcommand{\VChipRtfBldc}{2.65}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv + motorsound/config.py :: mediana total_ms / (1000·AVAL_A2212.seg_s)
+\newcommand{\VChipRtfMaxBldc}{2.65}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv + motorsound/config.py :: máx total_ms / (1000·seg_s)
+\newcommand{\VChipStackBldc}{20{,}536}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: min pilha_folga_bytes
+\newcommand{\VChipBldcPrepMed}{1.8}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana prep_ms
+\newcommand{\VChipBldcPrepPct}{0}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: 100·mediana prep_ms / mediana total_ms
+\newcommand{\VChipBldcTrackMed}{2345.5}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana rastreio_ms
+\newcommand{\VChipBldcTrackPct}{89}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: 100·mediana rastreio_ms / mediana total_ms
+\newcommand{\VChipBldcVitMed}{90.7}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana viterbi_ms
+\newcommand{\VChipBldcVitPct}{3}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: 100·mediana viterbi_ms / mediana total_ms
+\newcommand{\VChipBldcSalMed}{0.002}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana sal_caminho_ms
+\newcommand{\VChipBldcSalPct}{0}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: 100·mediana sal_caminho_ms / mediana total_ms
+\newcommand{\VChipBldcEnvMed}{199.3}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana envelope_ms
+\newcommand{\VChipBldcEnvPct}{8}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: 100·mediana envelope_ms / mediana total_ms
+\newcommand{\VChipBldcFeatMed}{10.1}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana features_ms
+\newcommand{\VChipBldcFeatPct}{0}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: 100·mediana features_ms / mediana total_ms
+\newcommand{\VChipBldcCosMed}{0.027}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: mediana cosseno_ms
+\newcommand{\VChipBldcCosPct}{0}% [esp32] embarcados/results/csv/esp32_lat_esp32_20261025-143026.csv :: 100·mediana cosseno_ms / mediana total_ms
+\newcommand{\VChipLatIdmtMed}{\textit{did not fit}}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[idmt] = 0
+\newcommand{\VChipLatIdmtPninetyfive}{\textit{did not fit}}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[idmt] = 0
+\newcommand{\VChipLatIdmtMax}{\textit{did not fit}}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[idmt] = 0
+\newcommand{\VChipRtfIdmt}{\textit{did not fit}}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[idmt] = 0
+\newcommand{\VChipWsIdmtKib}{\textit{did not fit}}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[idmt] = 0
+\newcommand{\VChipHeapIntIdmtB}{\textit{did not fit}}% [esp32] embarcados/results/csv/esp32_memoria_esp32_20261025-141018.csv :: coube[idmt] = 0
+\newcommand{\VChipEqStages}{8}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv :: etapas de janela comparadas (n_pass+n_fail>0)
+\newcommand{\VChipEqStagesPass}{8}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv :: etapas comparadas sem FAIL/PASS_EMPATE
+\newcommand{\VChipEqStagesAbsent}{12}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv :: etapas de janela que o firmware não devolve (todas AUSENTE)
+\newcommand{\VChipEqFail}{0}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv :: soma n_fail + n_fail_jusante
+\newcommand{\VChipEqCases}{79}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv :: janelas comparadas em decisao
+\newcommand{\VChipEqDecisionPass}{79}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv :: n_pass+n_pass_empate[decisao]
+\newcommand{\VChipEqMaxRatio}{0.19}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829_resumo.csv :: máx razao_tol_max nas etapas comparadas
+\newcommand{\VChipEqCasesReal}{75}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829.csv :: janelas reais (limpo+ruidoso) comparadas
+\newcommand{\VChipEqCasesEdge}{4}% [esp32] embarcados/results/csv/equivalencia_esp32_esp32_p11_c_lowmem_20261025-141829.csv :: casos de borda comparados
+\newcommand{\VEqLmStages}{18}% [equivalencia] embarcados/results/csv/equivalencia_float-lowmem_20261025-135553_resumo.csv :: etapas de janela comparadas (float-lowmem, PC)
+\newcommand{\VEqLmStagesPass}{18}% [equivalencia] embarcados/results/csv/equivalencia_float-lowmem_20261025-135553_resumo.csv :: etapas sem FAIL/PASS_EMPATE (float-lowmem, PC)
+\newcommand{\VEqLmCases}{79}% [equivalencia] embarcados/results/csv/equivalencia_float-lowmem_20261025-135553_resumo.csv :: janelas comparadas (float-lowmem, PC)
+\newcommand{\VEqLmDecisionPass}{79}% [equivalencia] embarcados/results/csv/equivalencia_float-lowmem_20261025-135553_resumo.csv :: pass[decisao] (float-lowmem)
+\newcommand{\VEqLmMaxRatio}{0.19}% [equivalencia] embarcados/results/csv/equivalencia_float-lowmem_20261025-135553_resumo.csv :: máx razao_tol_max (float-lowmem, PC)
+\newcommand{\VChipSeqWindows}{30}% [esp32] embarcados/results/csv/esp32_seq_esp32_20261025-143251.csv :: nº de janelas do fluxo
+\newcommand{\VChipSeqSwitches}{2}% [esp32] embarcados/results/csv/esp32_seq_esp32_20261025-143251_meta.json :: len(deteccao)
+\newcommand{\VChipSeqDelay}{0}% [esp32] embarcados/results/csv/esp32_seq_esp32_20261025-143251_meta.json :: max atraso_janelas
+\newcommand{\VChipSeqCp}{2}% [esp32] embarcados/results/csv/esp32_seq_esp32_20261025-143251_meta.json :: cp
+\newcommand{\VChipSeqSame}{30}% [esp32] embarcados/results/csv/esp32_seq_esp32_20261025-143251.csv + embarcados/results/csv/seq_pc_20261024-184829.csv :: nº de janelas com decisao_online (chip) == online_python (seq_pc)
+\newcommand{\VChipSeqHmmUs}{104}% [esp32] embarcados/results/csv/esp32_seq_esp32_20261025-143251.csv :: mediana us_hmm
+\newcommand{\VChipRefOverPoolThree}{5.9}% [estimativa] embarcados/paper/fontes/ws_float_48000.json + embarcados/results/manifests/bancada.json :: arena da referência (estimativa) / RAM interna do pool (medida)
+\newcommand{\VChipRefOverPoolOne}{3.0}% [estimativa] embarcados/paper/fontes/ws_float_16000.json + embarcados/results/manifests/bancada.json :: arena da referência (estimativa) / RAM interna do pool (medida)
