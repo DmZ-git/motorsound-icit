@@ -2,12 +2,14 @@
 
 ## 1. Referência
 
-Lesley Wheat, Martin v. Mohrenschildt, Saeid Habibi, Dhafar Al-Ani.
+Lesley Wheat, Martin v. Mohrenschildt, Saeid R. Habibi, Dhafar Al-Ani.
 "Correcting Domain Shifts in Electric Motor Vibration Data for Unseen Operating Conditions".
-arXiv:2504.10661v1 [eess.SP], 14 abr. 2025. Preprint "submetido ao IEEE" (versão revisada por pares: não encontrada).
-DOI: não encontrado (arXiv: https://doi.org/10.48550/arXiv.2504.10661, DOI padrão do arXiv).
+In *Proc. 2025 5th International Conference on Electrical, Computer and Energy Technologies
+(ICECET)*, pp. 1–6, 2025. DOI: 10.1109/ICECET63943.2025.11472330.
 
-- Link: https://arxiv.org/pdf/2504.10661
+- Texto completo consultado: preprint arXiv:2504.10661v1 [eess.SP], 14 abr. 2025,
+  https://arxiv.org/pdf/2504.10661. Os dados da publicação ICECET foram acrescentados da
+  referência bibliográfica fornecida pelo autor.
 - HFS original citado como [6]: E. Hofer, M. v. Mohrenschildt, "Model-Free Data Mining of Families of Rotating
   Machinery", *Applied Sciences* 12(6):3178, 2022, DOI 10.3390/app12063178 (DOI conferido no Crossref; **texto não
   lido**, o site da MDPI retornou 403).

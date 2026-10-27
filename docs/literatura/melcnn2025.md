@@ -3,7 +3,8 @@
 ## 1. Referência
 
 H. Uzel, Y. Özüpak, F. Alpsalaz, E. Aslan, I. Zaitsev. "Acoustic-based fault diagnosis of electric motors
-using Mel spectrograms and convolutional neural networks". *Scientific Reports* 16:3379 (online 23/12/2025).
+using Mel spectrograms and convolutional neural networks". *Scientific Reports* 16:3379 (2026; published
+online 23/12/2025).
 DOI 10.1038/s41598-025-33269-z. PMC12835145: https://pmc.ncbi.nlm.nih.gov/articles/PMC12835145
 
 ## 2. Leitura

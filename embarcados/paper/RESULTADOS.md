@@ -88,9 +88,12 @@ placa. A STFT por quadro com soma harmônica leva 2345,5 ms (89 % da
 mediana), o ramo do envelope 199,3 ms (8 %), o Viterbi de rotação
 90,7 ms (3 %), as features 10,1 ms e a normalização
 1,8 ms; cosseno e saliência no caminho são desprezíveis. No PC, a etapa de rastreio
-da referência (com tabela) fica com 39 % do tempo do C. Atribuímos o peso dela no
-chip ao fato de a variante recalcular as posições harmônicas em double sem tabela, e o ESP32 só tem double
-por emulação em software; o tempo da variante no PC não foi medido. Os
+da referência (com tabela) fica com 39 % do tempo do C. A variante medida no chip
+usa float32 para os sinais, mas recalcula as posições harmônicas em double sem tabela. Como STFT e
+soma harmônica foram cronometradas juntas e não foi medida uma variante que calcule essas posições
+em float32, a participação de 89 % provavelmente está associada a esse
+recálculo e à emulação de double por software; a medição não isola essas causas. O tempo da variante
+low-memory no PC não foi medido. Os
 caminhos para fechar a diferença são uma variante que faça essas contas em float (que teria de ser
 verificada como variante nomeada) ou uma placa com PSRAM, onde a tabela da referência cabe.
 Energia não foi medida.
@@ -126,7 +129,7 @@ usamos para ordenar métodos. Em toda linha com Bearing, a classe está confundi
 ## Teste oficial do IDMT
 
 Com as configurações congeladas e commitadas antes, o teste oficial do IDMT foi lido uma única vez
-(`src/python/teste_idmt.py`), com os modelos treinados em todo o `train/`. Nas 2021 janelas
+(`src/python/teste_idmt.py`), com os modelos treinados em todo o `train/`. Nas 2{,}021 janelas
 de teste (27 gravações, 9 condições), a validação quase perfeita não se sustenta:
 a acurácia balanceada é 0,704 [0,615, 0,789] para as features clássicas,
 0,595 [0,471, 0,714] para a pipeline e 0,476 para o baseline de

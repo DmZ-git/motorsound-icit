@@ -40,7 +40,7 @@ filtro forward causal, uma janela por vez (6 penalidades varridas, de 0,5 a
 
 ## Porte em C
 
-O porte segue o Python linha a linha e compila sem alteração no PC e no ESP-IDF. Ele nunca guarda
+O porte implementa em C os mesmos estágios do algoritmo Python e compila sem alteração no PC e no ESP-IDF. Ele nunca guarda
 o espectrograma inteiro: cada quadro é janelado, transformado por uma FFT real, acumulado no
 espectro médio e reduzido à sua linha de saliência. O Viterbi precisa da janela inteira, porque o
 custo do silêncio usa a energia máxima da janela; por isso a saliência normalizada e os
@@ -59,7 +59,10 @@ vetores de float lidos por palavra inteira, como as tabelas de giro da FFT), alo
 um plano encontrado por busca com retrocesso; a tabela de interpolação harmônica sai e as posições
 dos harmônicos são recalculadas em double a cada quadro; o Hilbert é feito por uma FFT de quatro
 passos, que é a mesma DFT em outra ordem de operações e por isso muda o erro numérico. Ela é
-comparada com a referência pelas mesmas tolerâncias do float32. Existe no firmware a opção
+comparada com a referência pelas mesmas tolerâncias do float32. A variante de referência
+`p11_c_ref` mantém o layout convencional, é usada na comparação no PC e na estimativa de memória,
+mas não cabe na RAM interna disponível. `p11_host ws <n>` é o comando que estima analiticamente
+esse espaço de trabalho, não uma variante do classificador. Existe no firmware a opção
 `p11_c_espdsp` (FFTs de potência de dois pela ESP-DSP), que nunca foi comparada com a referência
 nem medida no chip e por isso fica fora do artigo.
 
@@ -71,11 +74,15 @@ congeladas e commitadas antes, em `configs/experiments/congelado_teste_idmt_*.js
 (43 arquivos de 4 motores, 22 Healthy,
 14 Propeller e 7 Bearing; 430 janelas).
 Todos os métodos usam exatamente as mesmas janelas e os mesmos folds. No IDMT comparamos o split
-aleatório por janela (vazamento intencional, 18 grupos) e o split por blocos
-contíguos (15 grupos), que ainda não separa classe de motor porque há uma gravação
-por classe. No A2212 comparamos o split aleatório, o split agrupado por arquivo
-(43 grupos), o motor fora e o motor fora sem o fold do M4
-(36 grupos), porque o rolamento só existe no motor M4. A tabela
+aleatório estratificado por janela em 5 folds (vazamento intencional,
+18 grupos) e o split por blocos contíguos alinhados pela posição relativa:
+5 blocos por gravação, com uma janela de guarda removida nas fronteiras,
+345 janelas usadas e 15 grupos gravação-bloco. Esse split
+ainda não separa classe de motor porque há uma gravação por classe. No A2212, o split agrupado por
+arquivo usa 5 folds (43 grupos); leave-one-motor-out usa
+4 folds. A avaliação A2212 w/o M4 usa somente Healthy versus Propeller em M1--M3,
+com 3 folds, 36 grupos e BA de chance
+0,50; não avalia Bearing. O rolamento só existe no motor M4. A tabela
 `tables/latex/bases_protocolos.tex` resume o que cada protocolo permite concluir.
 
 Os baselines são o de nível (RMS e pico com regressão logística, com e sem normalização de RMS) e o
@@ -84,8 +91,17 @@ suave), inspirado no resumo de Vanaraj et al. (ficha `docs/literatura/vanaraj202
 acurácia balanceada, F1 macro, ROC-AUC macro um-contra-todos com os scores contínuos e
 sensibilidade por classe. Os intervalos de 95 % vêm de um bootstrap que reamostra
 grupos (blocos ou arquivos), estratificado por classe, com 2 000 reamostragens (semente
-20261023). No protocolo de motor fora a unidade independente é o motor, e com
+20261023); a semente dos splits é 20261014. No protocolo de motor fora a unidade independente é o motor, e com
 4 motores não há intervalo honesto nessa escala; o intervalo por arquivo é otimista.
+
+## Rastreabilidade da validação
+
+Os resultados de validação foram arquivados na execução `diagnostico_20261023_222831`, no commit
+`9081500264a3f089ccafcf614e4220da7b22d75c`, com árvore suja, seeds 20261014 e
+20261023, e sem hashes do código executado. O snapshot exato não pode ser reconstruído.
+Uma repetição limpa não foi possível neste workspace porque `data/idmt/`, `data/a2212/` e
+`.venv/` estão ausentes; portanto, os números permanecem exploratórios e não são descritos como
+independentemente reproduzidos.
 
 ## Protocolo de equivalência
 
@@ -93,7 +109,9 @@ A referência instrumentada gerou vetores de ouro de todas as etapas em 164 jane
 60 limpas da validação das duas bases, 90 ruidosas (5
 perturbações: ruído branco em três SNRs e os distúrbios sintéticos de afundamento e cintilação) e
 14 casos de borda (silêncio, clipping, rotação sintética fora da faixa e nível constante
-com ruído mínimo). As etapas do HMM foram conferidas em 20 sequências de probabilidade,
+com ruído mínimo). Assim, 150 vetores são de áudio real (60 limpos e
+90 ruidosos), e 14 são casos sintéticos de borda, não gravações
+independentes. As etapas do HMM foram conferidas em 20 sequências de probabilidade,
 6 penalidades e 2 durações mínimas (240 configurações). As
 tolerâncias de cada etapa vêm de uma análise de arredondamento de primeira ordem e de uma emulação
 numérica independente de cada build; foram congeladas antes da comparação formal, no commit
