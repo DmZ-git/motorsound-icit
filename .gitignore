@@ -20,3 +20,17 @@ cache/
 
 # CSVs crus de experimento: versionados comprimidos em out/experiments/gz/
 out/experiments/*.csv
+
+# Local datasets, experiment outputs and caches
+out/
+**/out/
+**/results/
+.venv/
+__pycache__/
+*.py[cod]
+*.npz
+*.wav
+*.WAV
+*.flac
+*.mp3
+
